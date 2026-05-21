@@ -1,0 +1,96 @@
+"use client";
+
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Edit3, Mail, MapPin, MessageCircle } from "lucide-react";
+import { FormEvent, useState } from "react";
+import { Avatar } from "@/components/Avatar";
+import { Modal } from "@/components/Modal";
+import { apiGet, apiSend } from "@/lib/api/client";
+import type { Post, User } from "@/lib/mock";
+
+export function Profile() {
+  const [editing, setEditing] = useState(false);
+  const queryClient = useQueryClient();
+  const me = useQuery({ queryKey: ["me"], queryFn: () => apiGet<User>("/api/users/me") });
+  const posts = useQuery({ queryKey: ["posts"], queryFn: () => apiGet<Post[]>("/api/posts") });
+  const weekly = useQuery({ queryKey: ["weekly-count"], queryFn: () => apiGet<{ count: number; remaining: number }>("/api/messages/weekly-count") });
+  const update = useMutation({
+    mutationFn: (body: Partial<User>) => apiSend<User>(`/api/users/${me.data?.id}`, "PATCH", body),
+    onSuccess: () => {
+      setEditing(false);
+      void queryClient.invalidateQueries({ queryKey: ["me"] });
+    },
+  });
+
+  if (me.isLoading) return <div className="skeleton" />;
+  if (me.error || !me.data) return <ErrorState retry={() => void me.refetch()} />;
+  const currentUser = me.data;
+
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    update.mutate({
+      full_name: String(form.get("full_name") ?? ""),
+      industry: String(form.get("industry") ?? ""),
+      bio: String(form.get("bio") ?? ""),
+    });
+  }
+
+  return (
+    <div>
+      <div className="card" style={{ overflow: "hidden" }}>
+        <div style={{ minHeight: 190, background: "linear-gradient(120deg, #0D1B1E, #1A6B5C 62%, #C9A84C)" }} />
+        <div style={{ padding: 24, marginTop: -62 }}>
+          <Avatar name={currentUser.full_name} size={116} />
+          <div className="row space-between" style={{ alignItems: "flex-start", flexWrap: "wrap", marginTop: 14 }}>
+            <div>
+              <h1 className="font-display" style={{ margin: 0, fontSize: 48 }}>{currentUser.full_name}</h1>
+              <p className="muted">{currentUser.industry} · {currentUser.career_stage}</p>
+              <p className="row muted"><MapPin size={16} /> {currentUser.city}, {currentUser.country}</p>
+            </div>
+            <button className="btn btn-primary" onClick={() => setEditing(true)}><Edit3 size={17} /> Edit profile</button>
+          </div>
+          <p style={{ maxWidth: 720, lineHeight: 1.7 }}>{currentUser.bio}</p>
+          <div className="row" style={{ flexWrap: "wrap" }}>{currentUser.skills.map((skill) => <span className="pill" key={skill}>{skill}</span>)}</div>
+        </div>
+      </div>
+
+      <div className="grid three-col" style={{ marginTop: 18 }}>
+        {[["Connections", "248"], ["Posts", String(posts.data?.filter((post) => post.user_id === currentUser.id).length ?? 0)], ["Profile views", "1,204"]].map(([label, value]) => (
+          <article className="card" style={{ padding: 20 }} key={label}><p className="muted" style={{ margin: 0 }}>{label}</p><strong style={{ fontSize: 30 }}>{value}</strong></article>
+        ))}
+      </div>
+
+      <div className="grid two-col" style={{ marginTop: 18 }}>
+        <article className="card" style={{ padding: 20 }}>
+          <div className="row"><MessageCircle color="#1A6B5C" /><strong>Weekly messaging counter</strong></div>
+          <p className="muted">Free plan includes 10 outgoing messages per week.</p>
+          <div style={{ height: 10, borderRadius: 999, background: "rgba(26,107,92,0.14)", overflow: "hidden" }}>
+            <div style={{ width: `${((weekly.data?.count ?? 0) / 10) * 100}%`, height: "100%", background: "#1A6B5C" }} />
+          </div>
+          <p>{weekly.data?.count ?? 0} used · {weekly.data?.remaining ?? 10} remaining</p>
+        </article>
+        <article className="card" style={{ padding: 20 }}>
+          <div className="row"><Mail color="#1A6B5C" /><strong>Opportunities</strong></div>
+          <p>{currentUser.open_to_opportunities ? "Open to relevant roles and collaborations." : "Not currently open to opportunities."}</p>
+          <span className="pill">{currentUser.show_photo ? "Photo visible" : "Photo hidden"}</span>
+        </article>
+      </div>
+
+      {editing ? (
+        <Modal title="Edit profile" onClose={() => setEditing(false)}>
+          <form className="grid" onSubmit={submit}>
+            <input className="input" name="full_name" defaultValue={currentUser.full_name} />
+            <input className="input" name="industry" defaultValue={currentUser.industry} />
+            <textarea className="textarea" name="bio" defaultValue={currentUser.bio} />
+            <button className="btn btn-primary" disabled={update.isPending}>Save changes</button>
+          </form>
+        </Modal>
+      ) : null}
+    </div>
+  );
+}
+
+function ErrorState({ retry }: { retry: () => void }) {
+  return <div className="card" style={{ padding: 24 }}><h2>Profile did not load</h2><button className="btn btn-primary" onClick={retry}>Retry</button></div>;
+}
