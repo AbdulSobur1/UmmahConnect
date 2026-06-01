@@ -108,24 +108,31 @@ export type NotificationRow = {
   created_at: string | null;
 };
 
+type Table<Row, Insert, Update> = {
+  Row: Row;
+  Insert: Insert;
+  Update: Update;
+  Relationships: [];
+};
+
 export type Database = {
   public: {
     Tables: {
-      users: { Row: UserRow; Insert: Partial<UserRow> & Pick<UserRow, "id" | "full_name" | "email">; Update: Partial<UserRow> };
-      communities: { Row: CommunityRow; Insert: Partial<CommunityRow> & Pick<CommunityRow, "name">; Update: Partial<CommunityRow> };
-      posts: { Row: PostRow; Insert: Partial<PostRow> & Pick<PostRow, "content">; Update: Partial<PostRow> };
-      post_likes: { Row: { post_id: string; user_id: string }; Insert: { post_id: string; user_id: string }; Update: never };
-      comments: { Row: CommentRow; Insert: Partial<CommentRow> & Pick<CommentRow, "content">; Update: Partial<CommentRow> };
-      community_members: { Row: { community_id: string; user_id: string; joined_at: string | null }; Insert: { community_id: string; user_id: string }; Update: never };
-      connections: { Row: { id: string; requester_id: string | null; receiver_id: string | null; status: string | null; created_at: string | null }; Insert: { requester_id: string; receiver_id: string; status?: string }; Update: { status?: string } };
-      messages: { Row: MessageRow; Insert: Partial<MessageRow> & Pick<MessageRow, "sender_id" | "receiver_id" | "content">; Update: Partial<MessageRow> };
-      message_weekly_counts: { Row: { user_id: string; week_start: string; count: number | null }; Insert: { user_id: string; week_start: string; count?: number }; Update: { count?: number } };
-      jobs: { Row: JobRow; Insert: Partial<JobRow> & Pick<JobRow, "posted_by" | "title" | "company">; Update: Partial<JobRow> };
-      mentorship_profiles: { Row: MentorshipProfileRow; Insert: MentorshipProfileRow; Update: Partial<MentorshipProfileRow> };
-      mentorship_requests: { Row: { id: string; mentee_id: string | null; mentor_id: string | null; status: string | null; message: string | null; created_at: string | null }; Insert: { mentee_id: string; mentor_id: string; message?: string }; Update: { status?: string } };
-      event_listings: { Row: EventListingRow; Insert: Partial<EventListingRow> & Pick<EventListingRow, "sponsor_id" | "title">; Update: Partial<EventListingRow> };
-      notifications: { Row: NotificationRow; Insert: Partial<NotificationRow> & Pick<NotificationRow, "user_id" | "type" | "content">; Update: Partial<NotificationRow> };
-      subscriptions: { Row: { id: string; user_id: string | null; plan: string; paystack_subscription_code: string | null; paystack_customer_code: string | null; status: string | null; current_period_start: string | null; current_period_end: string | null; created_at: string | null }; Insert: { user_id: string; plan: string; paystack_subscription_code?: string | null; paystack_customer_code?: string | null; status?: string; current_period_start?: string | null; current_period_end?: string | null }; Update: { status?: string; current_period_end?: string | null } };
+      users: Table<UserRow, Partial<UserRow> & Pick<UserRow, "id" | "full_name" | "email">, Partial<UserRow>>;
+      communities: Table<CommunityRow, Partial<CommunityRow> & Pick<CommunityRow, "name">, Partial<CommunityRow>>;
+      posts: Table<PostRow, Partial<PostRow> & Pick<PostRow, "content">, Partial<PostRow>>;
+      post_likes: Table<{ post_id: string; user_id: string }, { post_id: string; user_id: string }, never>;
+      comments: Table<CommentRow, Partial<CommentRow> & Pick<CommentRow, "content">, Partial<CommentRow>>;
+      community_members: Table<{ community_id: string; user_id: string; joined_at: string | null }, { community_id: string; user_id: string }, never>;
+      connections: Table<{ id: string; requester_id: string | null; receiver_id: string | null; status: string | null; created_at: string | null }, { requester_id: string; receiver_id: string; status?: string }, { status?: string }>;
+      messages: Table<MessageRow, Partial<MessageRow> & Pick<MessageRow, "sender_id" | "receiver_id" | "content">, Partial<MessageRow>>;
+      message_weekly_counts: Table<{ user_id: string; week_start: string; count: number | null }, { user_id: string; week_start: string; count?: number }, { count?: number }>;
+      jobs: Table<JobRow, Partial<JobRow> & Pick<JobRow, "posted_by" | "title" | "company">, Partial<JobRow>>;
+      mentorship_profiles: Table<MentorshipProfileRow, MentorshipProfileRow, Partial<MentorshipProfileRow>>;
+      mentorship_requests: Table<{ id: string; mentee_id: string | null; mentor_id: string | null; status: string | null; message: string | null; created_at: string | null }, { mentee_id: string; mentor_id: string; message?: string }, { status?: string }>;
+      event_listings: Table<EventListingRow, Partial<EventListingRow> & Pick<EventListingRow, "sponsor_id" | "title">, Partial<EventListingRow>>;
+      notifications: Table<NotificationRow, Partial<NotificationRow> & Pick<NotificationRow, "user_id" | "type" | "content">, Partial<NotificationRow>>;
+      subscriptions: Table<{ id: string; user_id: string | null; plan: string; paystack_subscription_code: string | null; paystack_customer_code: string | null; status: string | null; current_period_start: string | null; current_period_end: string | null; created_at: string | null }, { user_id: string; plan: string; paystack_subscription_code?: string | null; paystack_customer_code?: string | null; status?: string; current_period_start?: string | null; current_period_end?: string | null }, { status?: string; paystack_customer_code?: string | null; current_period_start?: string | null; current_period_end?: string | null }>;
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

@@ -26,7 +26,13 @@ export async function POST(request: NextRequest) {
         await supabase.from("event_listings").update({ is_active: true }).eq("id", payload.data.metadata.event_id);
       } else {
         await supabase.from("users").update({ plan: "pro" }).eq("id", userId);
-        await supabase.from("subscriptions").insert({ user_id: userId, plan: "pro", paystack_customer_code: payload.data?.customer?.customer_code, status: "active" });
+        const subscription = { user_id: userId, plan: "pro", paystack_customer_code: payload.data?.customer?.customer_code, status: "active" };
+        const { data: existing } = await supabase.from("subscriptions").select("id").eq("user_id", userId).eq("status", "active").maybeSingle();
+        if (existing?.id) {
+          await supabase.from("subscriptions").update(subscription).eq("id", existing.id);
+        } else {
+          await supabase.from("subscriptions").insert(subscription);
+        }
       }
     }
     if (payload.event === "subscription.disable" && userId) {

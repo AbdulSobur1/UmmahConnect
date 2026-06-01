@@ -25,14 +25,20 @@ export async function GET(request: NextRequest) {
     await notifyAllUsers("New sponsored event is live", metadata.event_id);
   } else if (userId) {
     await supabase.from("users").update({ plan: "pro" }).eq("id", userId);
-    await supabase.from("subscriptions").insert({
+    const subscription = {
       user_id: userId,
       plan: "pro",
       paystack_customer_code: result.data.customer?.customer_code,
       status: "active",
       current_period_start: result.data.paid_at ?? new Date().toISOString(),
       current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-    });
+    };
+    const { data: existing } = await supabase.from("subscriptions").select("id").eq("user_id", userId).eq("status", "active").maybeSingle();
+    if (existing?.id) {
+      await supabase.from("subscriptions").update(subscription).eq("id", existing.id);
+    } else {
+      await supabase.from("subscriptions").insert(subscription);
+    }
   }
   redirect.searchParams.set("payment", "success");
   return NextResponse.redirect(redirect);

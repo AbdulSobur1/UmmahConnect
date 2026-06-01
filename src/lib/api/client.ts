@@ -26,6 +26,7 @@ function demoData(url: string): unknown {
   if (url === "/api/messages/weekly-count") return { week_start: "2026-05-18", count: 3, remaining: 7 };
   if (url.startsWith("/api/messages/")) return messages;
   if (url === "/api/prayer-times") return { name: "Asr", time: "16:23", minutes_until: 82 };
+  if (url === "/api/payments/subscribe") return { authorization_url: "/feed?payment=demo", reference: "demo" };
   return null;
 }
 

@@ -36,7 +36,8 @@ export async function POST(request: NextRequest) {
       career_stage: careerStage,
       city,
       country: "Nigeria",
-      plan: plan === "pro" ? "free" : "free",
+      // Pro signups start as free until Paystack verifies the first payment.
+      plan: "free",
       skills: [],
       bio: "",
       show_photo: true,

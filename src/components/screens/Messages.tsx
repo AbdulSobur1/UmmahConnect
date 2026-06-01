@@ -33,7 +33,7 @@ export function Messages() {
     const channel = supabase
       .channel("messages")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `receiver_id=eq.${me.data.id}` }, () => {
-        void queryClient.invalidateQueries({ queryKey: ["messages"] });
+        void queryClient.invalidateQueries({ queryKey: ["messages"], exact: false });
       })
       .subscribe();
     return () => {
