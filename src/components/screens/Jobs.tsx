@@ -2,16 +2,21 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Briefcase, Filter, Search } from "lucide-react";
-import { FormEvent, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 import { HalalBadge } from "@/components/HalalBadge";
 import { Modal } from "@/components/Modal";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { apiGet, apiSend } from "@/lib/api/client";
 import type { Job, User } from "@/lib/mock";
 
+const filters = ["All", "Remote", "Hybrid", "Tech", "Creative", "Finance", "Early Career"];
+
 export function Jobs() {
   const [showPostJob, setShowPostJob] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
+  const [search, setSearch] = useState("");
+  const [activeFilter, setActiveFilter] = useState("All");
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const queryClient = useQueryClient();
   const me = useQuery({ queryKey: ["me"], queryFn: () => apiGet<User>("/api/users/me") });
   const jobs = useQuery({ queryKey: ["jobs"], queryFn: () => apiGet<Job[]>("/api/jobs") });
@@ -23,6 +28,20 @@ export function Jobs() {
     },
     onError: () => setShowUpgrade(true),
   });
+  const normalizedSearch = search.trim().toLowerCase();
+  const filteredJobs = useMemo(() => {
+    return (jobs.data ?? []).filter((job) => {
+      const matchesSearch = !normalizedSearch || [job.title, job.company, job.location, job.industry, job.career_stage].some((value) =>
+        value.toLowerCase().includes(normalizedSearch),
+      );
+      const matchesFilter =
+        activeFilter === "All" ||
+        job.job_type === activeFilter ||
+        job.industry === activeFilter ||
+        job.career_stage === activeFilter;
+      return matchesSearch && matchesFilter;
+    });
+  }, [activeFilter, jobs.data, normalizedSearch]);
 
   function openPostJob() {
     if (me.data?.plan !== "pro") setShowUpgrade(true);
@@ -41,20 +60,21 @@ export function Jobs() {
     <div>
       <div className="screen-title"><div><h1>Jobs</h1><p className="muted">Halal-verified opportunities from companies hiring values-led professionals.</p></div><button className="btn btn-primary" onClick={openPostJob}><Briefcase size={17} /> Post job</button></div>
       <div className="card" style={{ padding: 14, marginBottom: 18 }}>
-        <div className="row"><Search color="#6B7E78" /><input className="input" placeholder="Search roles, companies, or cities" style={{ border: 0 }} /><Filter color="#1A6B5C" /></div>
-        <div className="row" style={{ flexWrap: "wrap", marginTop: 12 }}>{["All", "Remote", "Hybrid", "Tech", "Creative", "Finance", "Early Career"].map((filter) => <span className="pill" key={filter}>{filter}</span>)}</div>
+        <div className="row"><Search color="#6B7E78" /><input className="input" placeholder="Search roles, companies, or cities" style={{ border: 0 }} value={search} onChange={(event) => setSearch(event.currentTarget.value)} /><Filter color="#1A6B5C" /></div>
+        <div className="row" style={{ flexWrap: "wrap", marginTop: 12 }}>{filters.map((filter) => <button className={`btn ${activeFilter === filter ? "btn-primary" : "btn-ghost"}`} key={filter} onClick={() => setActiveFilter(filter)}>{filter}</button>)}</div>
       </div>
       <div className="grid two-col">
-        {(jobs.data ?? []).map((job) => (
+        {filteredJobs.map((job) => (
           <article className="card" style={{ padding: 20 }} key={job.id}>
             <div className="row space-between"><span className="pill">{job.job_type}</span>{job.is_halal_verified ? <HalalBadge /> : null}</div>
             <h2 className="font-display" style={{ fontSize: 32 }}>{job.title}</h2>
             <p><strong>{job.company}</strong> · {job.location}</p>
             <p className="muted">{job.industry} · {job.career_stage} · {job.salary_range}</p>
-            <div className="row space-between"><small className="muted">Posted {job.created_at.slice(0, 10)}</small><button className="btn btn-ghost">View role</button></div>
+            <div className="row space-between"><small className="muted">Posted {job.created_at.slice(0, 10)}</small><button className="btn btn-ghost" onClick={() => setSelectedJob(job)}>View role</button></div>
           </article>
         ))}
       </div>
+      {filteredJobs.length === 0 ? <div className="card" style={{ padding: 20, marginTop: 18 }}><strong>No matching roles</strong><p className="muted">Try another search term or filter.</p></div> : null}
       {showPostJob ? (
         <Modal title="Post a halal-verified job" onClose={() => setShowPostJob(false)}>
           <form className="grid" onSubmit={submit}>
@@ -66,6 +86,16 @@ export function Jobs() {
             <label className="row"><input type="checkbox" defaultChecked /> I confirm this role meets halal compliance expectations.</label>
             <button className="btn btn-primary" disabled={postJob.isPending}>Submit job</button>
           </form>
+        </Modal>
+      ) : null}
+      {selectedJob ? (
+        <Modal title={selectedJob.title} onClose={() => setSelectedJob(null)}>
+          <div className="grid">
+            <p><strong>{selectedJob.company}</strong> · {selectedJob.location}</p>
+            <p className="muted">{selectedJob.industry} · {selectedJob.career_stage} · {selectedJob.salary_range}</p>
+            <div className="row" style={{ flexWrap: "wrap" }}><span className="pill">{selectedJob.job_type}</span>{selectedJob.is_halal_verified ? <HalalBadge /> : null}</div>
+            <button className="btn btn-primary" onClick={() => setSelectedJob(null)}>Close</button>
+          </div>
         </Modal>
       ) : null}
       {showUpgrade ? <UpgradeModal onClose={() => setShowUpgrade(false)} /> : null}
