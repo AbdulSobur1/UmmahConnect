@@ -32,9 +32,9 @@ export default function LoginForm() {
   }
 
   return (
-    <form className="card grid" onSubmit={submit} style={{ width: "min(460px, 100%)", padding: 24 }}>
+    <form className="card grid auth-card" onSubmit={submit}>
       <Link href="/" className="brand">Ummah Connect</Link>
-      <h1 className="font-display" style={{ margin: 0, fontSize: 42 }}>Log in</h1>
+      <h1 className="font-display">Log in</h1>
       <input className="input" name="email" type="email" placeholder="Email" required />
       <input className="input" name="password" type="password" placeholder="Password" required />
       {error ? <p className="muted">{error}</p> : null}

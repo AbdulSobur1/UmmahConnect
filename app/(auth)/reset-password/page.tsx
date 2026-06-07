@@ -18,10 +18,10 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <main className="page" style={{ display: "grid", placeItems: "center", padding: 20 }}>
-      <form className="card grid" onSubmit={submit} style={{ width: "min(460px, 100%)", padding: 24 }}>
+    <main className="page auth-page">
+      <form className="card grid auth-card" onSubmit={submit}>
         <Link href="/" className="brand">Ummah Connect</Link>
-        <h1 className="font-display" style={{ margin: 0, fontSize: 42 }}>Reset password</h1>
+        <h1 className="font-display">Reset password</h1>
         <input className="input" name="email" type="email" placeholder="Email" required />
         {message ? <p className="muted">{message}</p> : null}
         <button className="btn btn-primary">Send reset link</button>

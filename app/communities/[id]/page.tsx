@@ -52,38 +52,26 @@ export default async function PublicCommunityPage({ params }: PageProps) {
 
   return (
     <PublicLayout user={user}>
-      <main className="page" style={{ padding: '32px 0' }}>
+      <main className="page">
         <div className="container">
-          <Link href="/" className="brand" style={{ display: 'inline-block', marginBottom: 24 }}>
+          <Link href="/" className="brand public-brand">
             UmmahConnect
           </Link>
-          <article className="card" style={{ padding: 32 }}>
-            <div className="row" style={{ gap: 16, alignItems: 'center' }}>
-              <span
-                style={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: 12,
-                  background: '#132420',
-                  color: '#C9A84C',
-                  display: 'grid',
-                  placeItems: 'center',
-                  fontWeight: 700,
-                  fontSize: 18,
-                }}
-              >
+          <article className="card public-card public-community-card">
+            <div className="row row--center public-hero-row">
+              <span className="community-avatar">
                 {community.icon || community.name.slice(0, 2).toUpperCase()}
               </span>
               <div>
-                <h1 className="font-display" style={{ fontSize: 36, margin: 0 }}>{community.name}</h1>
-                <p className="muted" style={{ margin: '4px 0 0' }}>
+                <h1 className="font-display">{community.name}</h1>
+                <p className="muted public-copy">
                   {community.member_count.toLocaleString()} members
                 </p>
               </div>
             </div>
-            <p style={{ marginTop: 20, lineHeight: 1.6 }}>{community.description}</p>
+            <p className="public-text">{community.description}</p>
             {isPrivate ? (
-              <p className="muted" style={{ marginTop: 20 }}>
+              <p className="muted public-copy">
                 This is a private community. Join UmmahConnect to request access.
               </p>
             ) : (

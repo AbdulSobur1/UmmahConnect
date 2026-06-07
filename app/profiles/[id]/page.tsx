@@ -51,26 +51,24 @@ export default async function PublicProfilePage({ params }: PageProps) {
 
   return (
     <PublicLayout user={user}>
-      <main className="page" style={{ padding: '32px 0' }}>
+      <main className="page">
         <div className="container">
-          <Link href="/" className="brand" style={{ display: 'inline-block', marginBottom: 24 }}>
+          <Link href="/" className="brand public-brand">
             UmmahConnect
           </Link>
-          <article className="card" style={{ padding: 32 }}>
-            <h1 className="font-display" style={{ fontSize: 42, margin: '0 0 8px' }}>
-              {profile.full_name}
-            </h1>
-            <p className="muted" style={{ margin: '0 0 16px' }}>
+          <article className="card public-card">
+            <h1 className="font-display">{profile.full_name}</h1>
+            <p className="muted public-copy">
               {profile.career_stage} · {profile.industry} · {profile.city}, {profile.country}
             </p>
             {profile.open_to_opportunities ? (
-              <span className="pill" style={{ background: '#5ECDB5', color: '#0D1B1E' }}>
+              <span className="pill pill--active">
                 Open to opportunities
               </span>
             ) : null}
-            {profile.bio ? <p style={{ marginTop: 20, lineHeight: 1.6 }}>{profile.bio}</p> : null}
+            {profile.bio ? <p className="public-text">{profile.bio}</p> : null}
             {profile.skills.length > 0 ? (
-              <div className="row" style={{ flexWrap: 'wrap', gap: 8, marginTop: 20 }}>
+              <div className="row row--wrap public-skill-row">
                 {profile.skills.map((skill) => (
                   <span className="pill" key={skill}>{skill}</span>
                 ))}

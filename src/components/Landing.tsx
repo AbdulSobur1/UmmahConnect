@@ -33,19 +33,17 @@ export function Landing() {
     <div className="page">
       <section className="hero">
         <div className="container">
-          <span className="pill" style={{ color: "#FAF7F2", borderColor: "rgba(255,255,255,0.28)", background: "rgba(255,255,255,0.1)" }}>
-            Phase 1 Nigeria · Phase 2 global
-          </span>
+          <span className="pill">Phase 1 Nigeria · Phase 2 global</span>
           <h1>Ummah Connect</h1>
           <p>
             Professional networking for Nigerian Muslim professionals and creatives. Build your career, find your people,
             discover halal opportunities, and stay grounded in the values that shape your work.
           </p>
-          <div className="row" style={{ flexWrap: "wrap", marginTop: 28 }}>
+          <div className="row row--wrap hero-actions">
             <Link className="btn btn-accent" href="/feed">
               Enter App <ArrowRight size={18} />
             </Link>
-            <Link className="btn btn-ghost" href="#plans" style={{ color: "#FAF7F2", borderColor: "rgba(255,255,255,0.25)" }}>
+            <Link className="btn btn-ghost" href="#plans">
               View plans
             </Link>
           </div>
@@ -55,13 +53,13 @@ export function Landing() {
       <section className="section">
         <div className="container grid three-col">
           <div>
-            <h2 className="font-display" style={{ fontSize: 44, margin: 0 }}>Built for the full person.</h2>
+            <h2 className="font-display">Built for the full person.</h2>
             <p className="muted">Not a generic network with a Muslim label pasted on. The product starts from how people actually grow, collaborate, and protect their values.</p>
           </div>
           {features.slice(0, 2).map((feature) => {
             const Icon = feature.icon;
             return (
-              <article className="card" style={{ padding: 22 }} key={feature.title}>
+              <article className="card" key={feature.title}>
                 <Icon color="#1A6B5C" />
                 <h3>{feature.title}</h3>
                 <p className="muted">{feature.text}</p>
@@ -71,7 +69,7 @@ export function Landing() {
         </div>
       </section>
 
-      <section className="section" style={{ background: "#0D1B1E", color: "#FAF7F2" }}>
+      <section className="section card--strong">
         <div className="container grid three-col">
           {features.slice(2).map((feature) => {
             const Icon = feature.icon;
@@ -79,14 +77,14 @@ export function Landing() {
               <article key={feature.title}>
                 <Icon color="#5ECDB5" />
                 <h3>{feature.title}</h3>
-                <p style={{ color: "rgba(255,255,255,0.62)" }}>{feature.text}</p>
+                <p className="muted">{feature.text}</p>
               </article>
             );
           })}
           <article>
             <Globe2 color="#5ECDB5" />
             <h3>Nigeria first</h3>
-            <p style={{ color: "rgba(255,255,255,0.62)" }}>Launch with local cities, industries, events, and Muslim professional realities before global expansion.</p>
+            <p className="muted">Launch with local cities, industries, events, and Muslim professional realities before global expansion.</p>
           </article>
         </div>
       </section>
@@ -94,12 +92,14 @@ export function Landing() {
       <section className="section">
         <div className="container">
           <div className="screen-title">
-            <h2 className="font-display" style={{ fontSize: 44, margin: 0 }}>Communities already waiting</h2>
+            <div>
+              <h2 className="font-display">Communities already waiting</h2>
+            </div>
             <span className="pill">12 communities</span>
           </div>
           <div className="grid three-col">
             {landingCommunities.map((community) => (
-              <article className="card" style={{ padding: 18 }} key={community.id}>
+              <article className="card" key={community.id}>
                 <div className="row space-between">
                   <strong>{community.name}</strong>
                   <span className="pill">{community.icon}</span>
@@ -115,27 +115,27 @@ export function Landing() {
       <section className="section" id="plans">
         <div className="container grid three-col">
           {["Free", "Pro", "Event Sponsor"].map((plan, index) => (
-            <article className="card" style={{ padding: 24, borderColor: index === 1 ? "#C9A84C" : "var(--line)" }} key={plan}>
-              <h3 className="font-display" style={{ fontSize: 30, margin: 0 }}>{plan}</h3>
-              <p style={{ fontSize: 26, fontWeight: 700 }}>{index === 0 ? "₦0" : index === 1 ? "₦9,000/month" : "from ₦49,000/event"}</p>
-              <p className="muted">{index === 0 ? "Browse, connect, and message with weekly limits." : index === 1 ? "Full professional access and job posting." : "Promote verified events to the right audience."}</p>
+            <article className="card" key={plan}>
+              <h3 className="font-display">{plan}</h3>
+              <p className="plan-price">{index === 0 ? '₦0' : index === 1 ? '₦9,000/month' : 'from ₦49,000/event'}</p>
+              <p className="muted">{index === 0 ? 'Browse, connect, and message with weekly limits.' : index === 1 ? 'Full professional access and job posting.' : 'Promote verified events to the right audience.'}</p>
               <CheckCircle2 color="#1A6B5C" />
             </article>
           ))}
         </div>
       </section>
 
-      <section className="section" style={{ paddingTop: 0 }}>
+      <section className="section">
         <div className="container grid two-col">
-          <article className="card" style={{ padding: 22 }}>
+          <article className="card">
             <HalalBadge />
-            <h2 className="font-display" style={{ fontSize: 36 }}>Featured jobs</h2>
+            <h2 className="font-display">Featured jobs</h2>
             {landingJobs.map((job) => (
               <p key={job.id}><strong>{job.title}</strong> at {job.company} · {job.location}</p>
             ))}
           </article>
-          <article className="card" style={{ padding: 22 }}>
-            <h2 className="font-display" style={{ fontSize: 36 }}>Sponsored events</h2>
+          <article className="card">
+            <h2 className="font-display">Sponsored events</h2>
             {landingEvents.map((event) => (
               <p key={event.id}><strong>{event.title}</strong> · {event.event_date} · {event.location_detail}</p>
             ))}

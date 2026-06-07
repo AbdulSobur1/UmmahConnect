@@ -11,7 +11,13 @@ type Prayer = { name: string; time: string; minutes_until: number };
 type Weekly = { count: number; remaining: number; week_start: string };
 
 function LoadingFeed() {
-  return <div className="grid"><div className="skeleton" /><div className="skeleton" /><div className="skeleton" /></div>;
+  return (
+    <div className="grid">
+      <div className="skeleton" />
+      <div className="skeleton" />
+      <div className="skeleton" />
+    </div>
+  );
 }
 
 export function HomeFeed() {
@@ -53,36 +59,38 @@ export function HomeFeed() {
 
       <div className="grid two-col">
         <section className="grid">
-          <div className="card" style={{ padding: 18, background: "#132420", color: "#FAF7F2" }}>
+          <div className="card card--strong">
             <div className="row space-between">
               <div className="row">
                 <Sunrise color="#5ECDB5" />
                 <div>
                   <strong>Next prayer in {currentUser?.city}</strong>
-                  <p style={{ margin: "4px 0 0", color: "rgba(255,255,255,0.62)" }}>
+                  <p className="muted" style={{ margin: "4px 0 0" }}>
                     {prayer.data ? `${prayer.data.name} · ${prayer.data.time} · in ${prayer.data.minutes_until} min` : "Loading prayer time..."}
                   </p>
                 </div>
               </div>
-              <span className="pill" style={{ background: "rgba(255,255,255,0.1)", color: "#FAF7F2" }}>Today</span>
+              <span className="pill">Today</span>
             </div>
           </div>
 
-          <form className="card" style={{ padding: 18 }} onSubmit={submitPost}>
+          <form className="card" onSubmit={submitPost}>
             <div className="row">
               <Avatar name={currentUser?.full_name ?? "User"} />
               <textarea className="textarea" name="content" placeholder="Share a win, question, opportunity, or reflection..." />
             </div>
-            <div className="row space-between" style={{ marginTop: 12, flexWrap: "wrap" }}>
-              <div className="row" style={{ flexWrap: "wrap" }}>
-                {(communities.data ?? []).slice(0, 4).map((community) => <span className="pill" key={community.id}>{community.name}</span>)}
+            <div className="row row--wrap space-between">
+              <div className="row row--wrap">
+                {(communities.data ?? []).slice(0, 4).map((community) => (
+                  <span className="pill" key={community.id}>{community.name}</span>
+                ))}
               </div>
               <button className="btn btn-primary" disabled={createPost.isPending}><Send size={16} /> Post</button>
             </div>
           </form>
 
           {(posts.data ?? []).map((post) => (
-            <article className="card" style={{ padding: 20 }} key={post.id}>
+            <article className="card" key={post.id}>
               <div className="row space-between">
                 <div className="row">
                   <Avatar name={post.user.full_name} />
@@ -104,15 +112,15 @@ export function HomeFeed() {
 
         <aside className="grid" style={{ alignContent: "start" }}>
           {event ? (
-            <article className="card" style={{ padding: 20 }}>
+            <article className="card">
               <div className="row space-between"><strong>Sponsored event</strong><CalendarDays color="#C9A84C" /></div>
-              <h2 className="font-display" style={{ fontSize: 30 }}>{event.title}</h2>
+              <h2 className="font-display">{event.title}</h2>
               <p className="muted">{event.event_date} · {event.location_detail} · {event.location_type}</p>
               <button className="btn btn-accent" onClick={() => void apiSend(`/api/events/${event.id}/click`, "POST")}>Register interest</button>
             </article>
           ) : null}
 
-          <article className="card" style={{ padding: 20 }}>
+          <article className="card">
             <div className="row space-between"><strong>Community quick join</strong><Plus color="#1A6B5C" /></div>
             <div className="grid" style={{ marginTop: 14 }}>
               {(communities.data ?? []).slice(0, 6).map((community) => (
@@ -127,5 +135,11 @@ export function HomeFeed() {
 }
 
 function ErrorState({ retry }: { retry: () => void }) {
-  return <div className="card" style={{ padding: 24 }}><h2>Something did not load</h2><p className="muted">Please try again in a moment.</p><button className="btn btn-primary" onClick={retry}>Retry</button></div>;
+  return (
+    <div className="card" style={{ padding: 24 }}>
+      <h2>Something did not load</h2>
+      <p className="muted">Please try again in a moment.</p>
+      <button className="btn btn-primary" onClick={retry}>Retry</button>
+    </div>
+  );
 }

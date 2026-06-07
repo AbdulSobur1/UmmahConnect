@@ -25,7 +25,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${playfair.variable} ${dmSans.variable}`}>
       <body>
-        <Providers>{children}</Providers>
+        <div className="app-shell">
+          <Providers>
+            {children}
+            <footer className="app-footer">
+              <span lang="ar" dir="rtl">بسم الله الرحمن الرحيم</span>
+            </footer>
+          </Providers>
+        </div>
       </body>
     </html>
   );

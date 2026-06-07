@@ -37,15 +37,15 @@ export default function SignupForm() {
   }
 
   return (
-    <form className="card grid" onSubmit={submit} style={{ width: "min(620px, 100%)", padding: 24 }}>
+    <form className="card grid auth-card" onSubmit={submit}>
       <Link href="/" className="brand">Ummah Connect</Link>
-      <h1 className="font-display" style={{ margin: 0, fontSize: 42 }}>Create account</h1>
+      <h1 className="font-display">Create account</h1>
       <input className="input" name="full_name" placeholder="Full name" required />
       <input className="input" name="email" type="email" placeholder="Email" required />
       <input className="input" name="password" type="password" placeholder="Password" required minLength={8} />
       <input className="input" name="industry" placeholder="Industry or niche community" required />
       <select className="input" name="career_stage" defaultValue="Early Career">
-        {["Student", "Early Career", "Mid-Level", "Senior", "Executive", "Entrepreneur"].map((stage) => <option key={stage}>{stage}</option>)}
+        {['Student', 'Early Career', 'Mid-Level', 'Senior', 'Executive', 'Entrepreneur'].map((stage) => <option key={stage}>{stage}</option>)}
       </select>
       <input className="input" name="city" placeholder="City" required />
       <select className="input" name="plan" defaultValue="free">

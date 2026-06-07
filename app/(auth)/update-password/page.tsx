@@ -23,10 +23,10 @@ export default function UpdatePasswordPage() {
   }
 
   return (
-    <main className="page" style={{ display: "grid", placeItems: "center", padding: 20 }}>
-      <form className="card grid" onSubmit={submit} style={{ width: "min(460px, 100%)", padding: 24 }}>
+    <main className="page auth-page">
+      <form className="card grid auth-card" onSubmit={submit}>
         <Link href="/" className="brand">Ummah Connect</Link>
-        <h1 className="font-display" style={{ margin: 0, fontSize: 42 }}>Choose a new password</h1>
+        <h1 className="font-display">Choose a new password</h1>
         <input className="input" name="password" type="password" placeholder="New password" required minLength={8} />
         {error ? <p className="muted">{error}</p> : null}
         <button className="btn btn-primary">Update password</button>

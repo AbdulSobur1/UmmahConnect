@@ -66,15 +66,15 @@ export default async function PublicPostPage({ params }: PageProps) {
 
   return (
     <PublicLayout user={user}>
-      <main className="page" style={{ padding: '32px 0' }}>
+      <main className="page">
         <div className="container">
-          <Link href="/" className="brand" style={{ display: 'inline-block', marginBottom: 24 }}>
+          <Link href="/" className="brand public-brand">
             UmmahConnect
           </Link>
-          <article className="card" style={{ padding: 32 }}>
+          <article className="card public-card">
             <div className="row space-between">
               {post.user ? (
-                <Link href={`/profiles/${post.user.id}`} style={{ fontWeight: 600 }}>
+                <Link href={`/profiles/${post.user.id}`} className="public-link">
                   {post.user.full_name}
                 </Link>
               ) : (
@@ -82,18 +82,18 @@ export default async function PublicPostPage({ params }: PageProps) {
               )}
               <small className="muted">{post.created_at.slice(0, 10)}</small>
             </div>
-            <p style={{ margin: '16px 0', lineHeight: 1.7, fontSize: 17 }}>{post.content}</p>
+            <p className="public-text">{post.content}</p>
             <PostPublicClient postId={post.id} initialLikes={post.likes_count} user={user} />
-            <section style={{ marginTop: 32 }}>
-              <h2 className="font-display" style={{ fontSize: 24, marginBottom: 16 }}>
+            <section className="public-section">
+              <h2 className="font-display public-subtitle">
                 Comments ({post.comments.length})
               </h2>
-              <div className="grid" style={{ gap: 12 }}>
+              <div className="grid public-comments">
                 {post.comments.map((comment) => (
-                  <div className="card" style={{ padding: 16 }} key={comment.id}>
+                  <div className="card public-comment-card" key={comment.id}>
                     <div className="row space-between">
                       {comment.user ? (
-                        <Link href={`/profiles/${comment.user.id}`} style={{ fontWeight: 600 }}>
+                        <Link href={`/profiles/${comment.user.id}`} className="public-link">
                           {comment.user.full_name}
                         </Link>
                       ) : (
@@ -101,7 +101,7 @@ export default async function PublicPostPage({ params }: PageProps) {
                       )}
                       <small className="muted">{comment.created_at.slice(0, 10)}</small>
                     </div>
-                    <p style={{ margin: '8px 0 0' }}>{comment.content}</p>
+                    <p className="public-copy">{comment.content}</p>
                   </div>
                 ))}
                 {post.comments.length === 0 ? <p className="muted">No comments yet.</p> : null}

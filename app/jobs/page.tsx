@@ -33,14 +33,14 @@ export default async function PublicJobsPage() {
 
   return (
     <PublicLayout user={user}>
-      <main className="page" style={{ padding: '32px 0' }}>
+      <main className="page">
         <div className="container">
-          <Link href="/" className="brand" style={{ display: 'inline-block', marginBottom: 24 }}>
+          <Link href="/" className="brand public-brand">
             UmmahConnect
           </Link>
-          <div className="screen-title" style={{ marginBottom: 24 }}>
+          <div className="screen-title">
             <div>
-              <h1 className="font-display" style={{ fontSize: 42, margin: 0 }}>Halal Jobs</h1>
+              <h1 className="font-display">Halal Jobs</h1>
               <p className="muted">Verified opportunities for Muslim professionals in Nigeria.</p>
             </div>
           </div>
