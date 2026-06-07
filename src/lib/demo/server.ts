@@ -62,8 +62,17 @@ export function getDemoJobs() {
 export function getDemoCommunity(id: string) {
   const community = mockCommunities.find((c) => c.id === id);
   if (!community) return null;
+  const communityRow = {
+    id: community.id,
+    name: community.name,
+    icon: community.icon,
+    description: community.description,
+    is_private: community.is_private,
+    member_count: community.member_count,
+    created_at: community.created_at ?? null,
+  };
   if (community.is_private) {
-    return { ...communityDto(community), is_private: true as const };
+    return { ...communityDto(communityRow), is_private: true as const };
   }
   const posts = mockPosts
     .filter((p) => p.community_id === id)
@@ -94,7 +103,7 @@ export function getDemoCommunity(id: string) {
         },
       }),
     );
-  return { ...communityDto(community), posts };
+  return { ...communityDto(communityRow), posts };
 }
 
 export function getDemoPost(id: string) {

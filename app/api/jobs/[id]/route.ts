@@ -18,5 +18,12 @@ export const GET = withHandler(async (_req: NextRequest, ctx?: unknown) => {
     return err('Job not found', 404);
   }
 
+  // Fire-and-forget view count increment
+  supabase
+    .from('jobs')
+    .update({ views_count: (data.views_count ?? 0) + 1 })
+    .eq('id', params.id)
+    .then();
+
   return ok(jobDto(data));
 });

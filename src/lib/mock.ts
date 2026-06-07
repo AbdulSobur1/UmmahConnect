@@ -34,6 +34,7 @@ export type Community = {
   description: string;
   is_private: boolean;
   member_count: number;
+  created_at?: string;
 };
 
 export type Job = {
