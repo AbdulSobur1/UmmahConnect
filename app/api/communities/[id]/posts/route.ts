@@ -3,6 +3,7 @@ import { postDto } from "@/lib/api/mappers";
 import { fail, ok, serverError } from "@/lib/api/response";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { PostRow, UserRow } from "@/lib/supabase/types";
+export const dynamic = 'force-dynamic'
 
 type JoinedPost = PostRow & { users?: UserRow | null };
 
@@ -17,3 +18,4 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
     return serverError();
   }
 }
+

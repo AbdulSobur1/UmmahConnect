@@ -3,6 +3,7 @@ import { notifyUser } from "@/lib/api/notifications";
 import { verifyPaystackSignature } from "@/lib/api/paystack";
 import { fail, ok, serverError } from "@/lib/api/response";
 import { createSupabaseServiceClient } from "@/lib/supabase/server";
+export const dynamic = 'force-dynamic'
 
 export const runtime = "nodejs";
 
@@ -48,3 +49,4 @@ export async function POST(request: NextRequest) {
     return serverError();
   }
 }
+

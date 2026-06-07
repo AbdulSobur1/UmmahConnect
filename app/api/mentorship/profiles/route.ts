@@ -4,6 +4,7 @@ import { asRecord, stringArrayValue, stringValue } from "@/lib/api/parsing";
 import { fail, ok, serverError } from "@/lib/api/response";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { MentorshipProfileRow, UserRow } from "@/lib/supabase/types";
+export const dynamic = 'force-dynamic'
 
 type JoinedMentor = MentorshipProfileRow & { users?: UserRow | null };
 
@@ -50,3 +51,4 @@ export async function POST(request: NextRequest) {
     return serverError();
   }
 }
+

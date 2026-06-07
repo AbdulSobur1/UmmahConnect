@@ -5,6 +5,7 @@ import { asRecord, stringValue } from "@/lib/api/parsing";
 import { fail, ok, serverError } from "@/lib/api/response";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { PostRow, UserRow } from "@/lib/supabase/types";
+export const dynamic = 'force-dynamic'
 
 type JoinedPost = PostRow & { users?: UserRow | null };
 
@@ -39,3 +40,4 @@ export async function POST(request: NextRequest) {
     return serverError();
   }
 }
+

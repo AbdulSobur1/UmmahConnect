@@ -6,6 +6,7 @@ import { notifyUsersByIndustry } from '@/lib/api/notifications';
 import { asRecord, booleanValue, stringValue } from '@/lib/api/parsing';
 import { fail, serverError } from '@/lib/api/response';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+export const dynamic = 'force-dynamic'
 
 export const GET = withHandler(async (request: NextRequest) => {
   const supabase = createSupabaseServerClient();
@@ -72,3 +73,4 @@ export async function POST(request: NextRequest) {
     return serverError();
   }
 }
+

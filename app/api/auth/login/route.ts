@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { fail, ok, serverError } from "@/lib/api/response";
 import { asRecord, stringValue } from "@/lib/api/parsing";
+export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,3 +18,4 @@ export async function POST(request: NextRequest) {
     return serverError();
   }
 }
+

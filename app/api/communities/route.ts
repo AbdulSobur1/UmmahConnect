@@ -2,6 +2,7 @@ import { requireAuth } from "@/lib/api/auth";
 import { communityDto } from "@/lib/api/mappers";
 import { fail, ok, serverError } from "@/lib/api/response";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+export const dynamic = 'force-dynamic'
 
 export async function GET() {
   try {
@@ -16,3 +17,4 @@ export async function GET() {
     return serverError();
   }
 }
+

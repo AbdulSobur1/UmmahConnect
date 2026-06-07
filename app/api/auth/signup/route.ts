@@ -3,6 +3,7 @@ import { fail, ok, serverError } from "@/lib/api/response";
 import { asRecord, stringValue } from "@/lib/api/parsing";
 import { createSupabaseServerClient, createSupabaseServiceClient } from "@/lib/supabase/server";
 import { initializePaystackTransaction } from "@/lib/api/paystack";
+export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
   try {
@@ -59,3 +60,4 @@ export async function POST(request: NextRequest) {
     return serverError();
   }
 }
+

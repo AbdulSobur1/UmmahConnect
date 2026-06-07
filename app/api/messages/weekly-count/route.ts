@@ -2,6 +2,7 @@ import { requireAuth } from "@/lib/api/auth";
 import { mondayWeekStart } from "@/lib/api/business";
 import { fail, ok, serverError } from "@/lib/api/response";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+export const dynamic = 'force-dynamic'
 
 export async function GET() {
   try {
@@ -15,3 +16,4 @@ export async function GET() {
     return serverError();
   }
 }
+

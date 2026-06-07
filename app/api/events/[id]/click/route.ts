@@ -1,5 +1,6 @@
 import { ok } from "@/lib/api/response";
 import { createSupabaseServiceClient } from "@/lib/supabase/server";
+export const dynamic = 'force-dynamic'
 
 export async function POST(_: Request, { params }: { params: { id: string } }) {
   const supabase = createSupabaseServiceClient();
@@ -7,3 +8,4 @@ export async function POST(_: Request, { params }: { params: { id: string } }) {
   await supabase.from("event_listings").update({ clicks_count: (data?.clicks_count ?? 0) + 1 }).eq("id", params.id);
   return ok({ tracked: true });
 }
+

@@ -1,90 +1,80 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
+import { jwtVerify } from 'jose/jwt/verify';
+
+const PUBLIC_ROUTES = [
+  '/',
+  '/login',
+  '/signup',
+  '/reset-password',
+  '/update-password',
+];
+
+const BROWSEABLE_ROUTES = [
+  '/profiles',
+  '/posts',
+  '/communities',
+  '/jobs',
+  '/events',
+];
+
+const PROTECTED_ROUTES = [
+  '/feed',
+  '/messages',
+  '/notifications',
+  '/settings',
+  '/mentorship',
+  '/discover',
+  '/dashboard',
+];
+
+const AUTH_COOKIE_NAMES = ['sb-access-token', 'sb-refresh-token', 'supabase-auth-token', 'auth-token'];
+
+const JWT_SECRET = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_JWT_SECRET || '';
+
+function getTokenFromRequest(request: NextRequest) {
+  for (const name of AUTH_COOKIE_NAMES) {
+    const cookie = request.cookies.get(name);
+    if (cookie?.value) {
+      return cookie.value;
+    }
+  }
+  return null;
+}
+
+async function verifyToken(token: string) {
+  if (!JWT_SECRET) return null;
+  try {
+    const encoder = new TextEncoder();
+    const { payload } = await jwtVerify(token, encoder.encode(JWT_SECRET));
+    return payload;
+  } catch {
+    return null;
+  }
+}
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Routes that are fully public — no auth needed at all
-  const publicRoutes = [
-    '/',
-    '/login',
-    '/signup',
-    '/reset-password',
-    '/update-password',
-  ];
+  const isProtected = PROTECTED_ROUTES.some((route) => pathname.startsWith(route));
 
-  // Route prefixes that are publicly browsable (read-only)
-  const browseableRoutes = [
-    '/profiles',
-    '/posts',
-    '/communities',
-    '/jobs',
-    '/events',
-  ];
+  const token = getTokenFromRequest(request);
+  const user = token ? await verifyToken(token) : null;
 
-  // Routes that always require authentication
-  const protectedRoutes = [
-    '/feed',
-    '/messages',
-    '/notifications',
-    '/settings',
-    '/mentorship',
-    '/discover',
-    '/dashboard',
-  ];
-
-  const isPublicRoute = publicRoutes.includes(pathname);
-  const isBrowseable = browseableRoutes.some((r) => pathname.startsWith(r));
-  const isProtected = protectedRoutes.some((r) => pathname.startsWith(r));
-  const isApiRoute = pathname.startsWith('/api/');
-
-  // Build response with session refresh
-  let response = NextResponse.next({ request });
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll: () => request.cookies.getAll().map((cookie) => ({ name: cookie.name, value: cookie.value })),
-        setAll: (cookies: Array<{ name: string; value: string; options?: any }>) => {
-          for (const cookie of cookies) {
-            response.cookies.set({ name: cookie.name, value: cookie.value, ...cookie.options });
-          }
-        },
-      },
-    }
-  );
-
-  let user = null;
-
-  try {
-    const result = await supabase.auth.getUser();
-    user = result.data.user;
-  } catch (error) {
-    // If auth lookup fails in middleware, continue as guest rather than crashing the whole request.
-    user = null;
-  }
-
-  // Redirect authenticated users away from auth pages
   if (user && (pathname === '/login' || pathname === '/signup')) {
     return NextResponse.redirect(new URL('/feed', request.url));
   }
 
-  // Block unauthenticated access to protected routes
   if (isProtected && !user) {
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('next', pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  // Public and browseable routes pass through freely
-  // API routes handle their own auth internally
-  return response;
+  return NextResponse.next();
 }
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|login|signup).*)',
   ],
 };

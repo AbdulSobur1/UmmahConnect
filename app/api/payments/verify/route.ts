@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyPaystackTransaction } from "@/lib/api/paystack";
 import { notifyAllUsers } from "@/lib/api/notifications";
 import { createSupabaseServiceClient } from "@/lib/supabase/server";
+export const dynamic = 'force-dynamic'
 
 export const runtime = "nodejs";
 
@@ -43,3 +44,4 @@ export async function GET(request: NextRequest) {
   redirect.searchParams.set("payment", "success");
   return NextResponse.redirect(redirect);
 }
+

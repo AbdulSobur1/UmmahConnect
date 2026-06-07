@@ -6,6 +6,7 @@ import { notifyUser } from "@/lib/api/notifications";
 import { asRecord, stringValue } from "@/lib/api/parsing";
 import { fail, ok, serverError } from "@/lib/api/response";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+export const dynamic = 'force-dynamic'
 
 export async function GET(_: Request, { params }: { params: { userId: string } }) {
   try {
@@ -43,3 +44,4 @@ export async function POST(request: NextRequest, { params }: { params: { userId:
     return serverError();
   }
 }
+

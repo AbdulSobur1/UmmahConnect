@@ -5,6 +5,7 @@ import { postDto, publicProfileDto } from '@/lib/api/mappers';
 import { fail, serverError } from '@/lib/api/response';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import type { CommentRow, PostRow, UserRow } from '@/lib/supabase/types';
+export const dynamic = 'force-dynamic'
 
 type JoinedPost = PostRow & { users?: UserRow | null };
 type JoinedComment = CommentRow & { users?: UserRow | null };
@@ -61,3 +62,4 @@ export async function DELETE(_: Request, { params }: { params: { id: string } })
     return serverError();
   }
 }
+

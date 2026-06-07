@@ -3,6 +3,7 @@ import { withHandler, ok, err } from '@/lib/api/helpers';
 import { communityDto, postDto } from '@/lib/api/mappers';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import type { PostRow, UserRow } from '@/lib/supabase/types';
+export const dynamic = 'force-dynamic'
 
 type JoinedPost = PostRow & { users?: UserRow | null };
 
@@ -38,3 +39,4 @@ export const GET = withHandler(async (_req: NextRequest, ctx?: unknown) => {
     posts: ((posts ?? []) as unknown as JoinedPost[]).map(postDto),
   });
 });
+

@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ok, serverError } from "@/lib/api/response";
+export const dynamic = 'force-dynamic'
 
 export async function POST() {
   try {
@@ -10,3 +11,4 @@ export async function POST() {
     return serverError();
   }
 }
+

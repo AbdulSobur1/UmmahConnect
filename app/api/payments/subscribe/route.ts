@@ -3,6 +3,7 @@ import { requireAuth } from "@/lib/api/auth";
 import { initializePaystackTransaction } from "@/lib/api/paystack";
 import { asRecord, stringValue } from "@/lib/api/parsing";
 import { fail, ok, serverError } from "@/lib/api/response";
+export const dynamic = 'force-dynamic'
 
 export const runtime = "nodejs";
 
@@ -27,3 +28,4 @@ export async function POST(request: NextRequest) {
     return serverError();
   }
 }
+

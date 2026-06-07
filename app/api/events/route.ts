@@ -1,6 +1,7 @@
 import { withHandler, ok, err } from '@/lib/api/helpers';
 import { eventDto } from '@/lib/api/mappers';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+export const dynamic = 'force-dynamic'
 
 export const GET = withHandler(async () => {
   const today = new Date().toISOString().slice(0, 10);
@@ -18,3 +19,4 @@ export const GET = withHandler(async () => {
 
   return ok((data ?? []).map(eventDto));
 });
+

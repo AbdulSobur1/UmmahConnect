@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { withHandler, ok, err } from '@/lib/api/helpers';
 import { jobDto } from '@/lib/api/mappers';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+export const dynamic = 'force-dynamic'
 
 export const GET = withHandler(async (_req: NextRequest, ctx?: unknown) => {
   const params = (ctx as { params: { id: string } }).params;
@@ -27,3 +28,4 @@ export const GET = withHandler(async (_req: NextRequest, ctx?: unknown) => {
 
   return ok(jobDto(data));
 });
+

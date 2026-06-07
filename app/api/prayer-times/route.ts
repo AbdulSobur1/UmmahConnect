@@ -1,6 +1,7 @@
 import { requireAuth } from "@/lib/api/auth";
 import { getNextPrayer } from "@/lib/api/prayer";
 import { fail, ok, serverError } from "@/lib/api/response";
+export const dynamic = 'force-dynamic'
 
 export async function GET() {
   try {
@@ -11,3 +12,4 @@ export async function GET() {
     return serverError();
   }
 }
+

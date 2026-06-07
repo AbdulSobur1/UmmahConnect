@@ -1,6 +1,7 @@
 import { requireAuth } from "@/lib/api/auth";
 import { fail, ok, serverError } from "@/lib/api/response";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+export const dynamic = 'force-dynamic'
 
 export async function GET(_: Request, { params }: { params: { id: string } }) {
   try {
@@ -17,3 +18,4 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
     return serverError();
   }
 }
+
