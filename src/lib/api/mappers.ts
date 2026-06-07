@@ -1,5 +1,20 @@
 import type { CommunityRow, EventListingRow, JobRow, MessageRow, NotificationRow, PostRow, UserRow } from "@/lib/supabase/types";
 
+export function publicProfileDto(user: UserRow) {
+  return {
+    id: user.id,
+    full_name: user.full_name,
+    industry: user.industry ?? "",
+    career_stage: user.career_stage ?? "",
+    city: user.city ?? "",
+    country: user.country ?? "Nigeria",
+    bio: user.bio ?? "",
+    skills: user.skills ?? [],
+    open_to_opportunities: Boolean(user.open_to_opportunities),
+    created_at: user.created_at ?? "",
+  };
+}
+
 export function userDto(user: UserRow) {
   return {
     id: user.id,

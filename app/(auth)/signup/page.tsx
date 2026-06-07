@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useState } from "react";
 
 export default function SignupPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -30,7 +31,9 @@ export default function SignupPage() {
       window.location.href = json.data.authorization_url;
       return;
     }
-    router.push("/login");
+    const next = searchParams.get("next");
+    const safeRedirect = next && next.startsWith("/") ? next : "/feed";
+    router.push(safeRedirect);
   }
 
   return (

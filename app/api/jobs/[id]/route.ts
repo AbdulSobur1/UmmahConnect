@@ -1,17 +1,22 @@
-import { requireAuth } from "@/lib/api/auth";
-import { jobDto } from "@/lib/api/mappers";
-import { fail, ok, serverError } from "@/lib/api/response";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { NextRequest } from 'next/server';
+import { withHandler, ok, err } from '@/lib/api/helpers';
+import { jobDto } from '@/lib/api/mappers';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 
-export async function GET(_: Request, { params }: { params: { id: string } }) {
-  try {
-    const auth = await requireAuth();
-    if ("error" in auth) return fail(auth.error, 401);
-    const supabase = createSupabaseServerClient();
-    const { data } = await supabase.from("jobs").select("*").eq("id", params.id).eq("is_active", true).single();
-    if (!data) return fail("not_found", 404);
-    return ok(jobDto(data));
-  } catch {
-    return serverError();
+export const GET = withHandler(async (_req: NextRequest, ctx?: unknown) => {
+  const params = (ctx as { params: { id: string } }).params;
+  const supabase = createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('jobs')
+    .select('*')
+    .eq('id', params.id)
+    .eq('is_active', true)
+    .eq('is_halal_verified', true)
+    .single();
+
+  if (error || !data) {
+    return err('Job not found', 404);
   }
-}
+
+  return ok(jobDto(data));
+});

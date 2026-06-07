@@ -1,0 +1,31 @@
+# UmmahConnect
+
+A professional career network for Muslim professionals in Nigeria.
+
+## Stack
+- Next.js 14 App Router
+- Supabase (Postgres, Auth, Storage, Realtime)
+- React Query
+- TypeScript (strict)
+- Tailwind CSS
+- Zod
+- Paystack (payments)
+
+## Getting Started
+
+1. Copy `.env.example` to `.env.local` and fill in your values
+2. Run `npm install`
+3. Run `npm run dev`
+
+## Environment Variables
+See `.env.example` for all required variables with descriptions.
+
+## Key Conventions
+- All API routes use `withHandler` from `src/lib/api/helpers.ts`
+- All inputs validated with Zod schemas from `src/lib/validation.ts`
+- Never use `supabase.auth.getSession()` alone — always `getUser()`
+- Public routes: `/profiles`, `/posts`, `/communities`, `/jobs`, `/events`
+- Protected routes: `/feed`, `/messages`, `/notifications`, `/settings`, `/mentorship`
+
+## Phase 1 Market
+Nigeria — Muslims only, all cities supported.
