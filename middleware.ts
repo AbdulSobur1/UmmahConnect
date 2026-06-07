@@ -48,18 +48,24 @@ export async function middleware(request: NextRequest) {
       cookies: {
         get: (name: string) => request.cookies.get(name)?.value,
         set: (name: string, value: string, options: any) => {
-          request.cookies.set({ name, value, ...options });
           response.cookies.set({ name, value, ...options });
         },
         remove: (name: string, options: any) => {
-          request.cookies.set({ name, value: '', ...options });
           response.cookies.set({ name, value: '', ...options });
         },
       },
     }
   );
 
-  const { data: { user } } = await supabase.auth.getUser();
+  let user = null;
+
+  try {
+    const result = await supabase.auth.getUser();
+    user = result.data.user;
+  } catch (error) {
+    // If auth lookup fails in middleware, continue as guest rather than crashing the whole request.
+    user = null;
+  }
 
   // Redirect authenticated users away from auth pages
   if (user && (pathname === '/login' || pathname === '/signup')) {
