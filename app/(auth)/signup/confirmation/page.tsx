@@ -12,7 +12,7 @@ export default function SignupConfirmationPage({ searchParams }: ConfirmationPag
     <main className="auth-page">
       <div className="auth-stack">
         <section className="auth-card auth-success">
-          <Link href="/" className="auth-logo">Ummah<span>Connect</span></Link>
+          <Link href="/" className="auth-logo">Ummah <span>Connect</span></Link>
           <div className="success-icon"><CheckCircle2 size={30} /></div>
           <h1>Check your email to confirm your account.</h1>
           <p className="auth-subtitle">We sent a link to {email}. Click it to get started.</p>

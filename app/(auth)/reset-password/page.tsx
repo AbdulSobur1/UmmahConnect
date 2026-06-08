@@ -37,7 +37,7 @@ export default function ResetPasswordPage() {
     <main className="auth-page">
       <div className="auth-stack">
         <section className="auth-card">
-          <Link href="/" className="auth-logo">Ummah<span>Connect</span></Link>
+          <Link href="/" className="auth-logo">Ummah <span>Connect</span></Link>
           {sent ? (
             <div className="auth-success">
               <div className="success-icon"><Check size={28} /></div>
@@ -48,7 +48,7 @@ export default function ResetPasswordPage() {
           ) : (
             <form className="auth-inner-form" onSubmit={submit}>
               <h1>Reset password</h1>
-              <p className="auth-subtitle">Sign in to your UmmahConnect account</p>
+              <p className="auth-subtitle">Enter your email to reset your password</p>
               <label className="auth-field">
                 <span>Email</span>
                 <input name="email" type="email" placeholder="you@example.com" autoComplete="email" required />

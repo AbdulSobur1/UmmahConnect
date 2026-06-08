@@ -97,7 +97,7 @@ export default function SignupForm() {
   return (
     <div className="auth-stack">
       <form className="auth-card auth-card--wide" onSubmit={submit}>
-        <Link href="/" className="auth-logo">Ummah<span>Connect</span></Link>
+        <Link href="/" className="auth-logo">Ummah <span>Connect</span></Link>
         <h1>Create your account</h1>
         <p className="auth-subtitle">Join Muslim professionals across Nigeria</p>
 
