@@ -1,4 +1,35 @@
-import type { EventListingRow, MentorshipProfileRow, UserRow } from "@/lib/supabase/types";
+interface UserRow {
+  id: string;
+  industry: string | null;
+  careerStage: string | null;
+  city: string | null;
+  country: string;
+  plan: string;
+}
+
+interface MentorshipProfileRow {
+  userId: string;
+  role: string | null;
+  industries: string[] | null;
+  languages: string[] | null;
+  valuesTags: string[] | null;
+  careerStage: string | null;
+  bio: string | null;
+  yearsExperience: number | null;
+  users?: { city?: string | null; country?: string } | null;
+}
+
+interface EventListingRow {
+  id: string;
+  sponsorId: string | null;
+  title: string;
+  eventDate: string | null;
+  locationType: string | null;
+  locationDetail: string | null;
+  isActive: boolean;
+  viewsCount: number | null;
+  clicksCount: number | null;
+}
 
 export function mondayWeekStart(date = new Date()) {
   const copy = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
@@ -8,20 +39,20 @@ export function mondayWeekStart(date = new Date()) {
   return copy.toISOString().slice(0, 10);
 }
 
-export function isPro(profile: Pick<UserRow, "plan">) {
-  return profile.plan === "pro";
+export function isPro(profile: Pick<UserRow, 'plan'>) {
+  return profile.plan === 'pro';
 }
 
-const careerStages = ["Student", "Early Career", "Mid-Level", "Senior", "Executive", "Entrepreneur"];
+const careerStages = ['Student', 'Early Career', 'Mid-Level', 'Senior', 'Executive', 'Entrepreneur'];
 
 export function scoreMentor(user: UserRow, mentor: MentorshipProfileRow & { users?: UserRow | null }) {
   const mentorUser = mentor.users;
-  const industryScore = mentor.industries?.includes(user.industry ?? "") ? 40 : 0;
-  const userStageIndex = careerStages.indexOf(user.career_stage ?? "");
-  const mentorStageIndex = careerStages.indexOf(mentor.career_stage ?? "");
+  const industryScore = mentor.industries?.includes(user.industry ?? '') ? 40 : 0;
+  const userStageIndex = careerStages.indexOf(user.careerStage ?? '');
+  const mentorStageIndex = careerStages.indexOf(mentor.careerStage ?? '');
   const stageDistance = Math.abs(userStageIndex - mentorStageIndex);
   const careerScore = userStageIndex === -1 || mentorStageIndex === -1 ? 0 : stageDistance === 0 ? 25 : stageDistance === 1 ? 15 : 0;
-  const userLanguages = ["English"];
+  const userLanguages = ['English'];
   const mentorLanguages = mentor.languages ?? [];
   const overlap = mentorLanguages.filter((language) => userLanguages.includes(language)).length;
   const locationScore = mentorUser?.city === user.city ? 20 : mentorUser?.country === user.country ? 10 : 0;
@@ -32,13 +63,13 @@ export function scoreMentor(user: UserRow, mentor: MentorshipProfileRow & { user
 export function mapEventForFrontend(event: EventListingRow) {
   return {
     id: event.id,
-    sponsor_id: event.sponsor_id ?? "",
+    sponsor_id: event.sponsorId ?? '',
     title: event.title,
-    event_date: event.event_date ?? "",
-    location_type: event.location_type ?? "",
-    location_detail: event.location_detail ?? "",
-    is_active: Boolean(event.is_active),
-    views_count: event.views_count ?? 0,
-    clicks_count: event.clicks_count ?? 0,
+    event_date: event.eventDate ?? '',
+    location_type: event.locationType ?? '',
+    location_detail: event.locationDetail ?? '',
+    is_active: Boolean(event.isActive),
+    views_count: event.viewsCount ?? 0,
+    clicks_count: event.clicksCount ?? 0,
   };
 }

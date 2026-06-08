@@ -1,11 +1,11 @@
-import { ok } from "@/lib/api/response";
-import { createSupabaseServiceClient } from "@/lib/supabase/server";
-export const dynamic = 'force-dynamic'
+import { db } from '@/lib/db';
+import { eventListings } from '@/lib/db/schema';
+import { ok } from '@/lib/api/helpers';
+import { eq } from 'drizzle-orm';
 
 export async function POST(_: Request, { params }: { params: { id: string } }) {
-  const supabase = createSupabaseServiceClient();
-  const { data } = await supabase.from("event_listings").select("views_count").eq("id", params.id).single();
-  await supabase.from("event_listings").update({ views_count: (data?.views_count ?? 0) + 1 }).eq("id", params.id);
+  const [existing] = await db.select({ viewsCount: eventListings.viewsCount }).from(eventListings).where(eq(eventListings.id, params.id)).limit(1);
+  await db.update(eventListings).set({ viewsCount: (existing?.viewsCount ?? 0) + 1 }).where(eq(eventListings.id, params.id));
   return ok({ tracked: true });
 }
 

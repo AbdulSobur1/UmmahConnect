@@ -1,39 +1,46 @@
-import { createSupabaseServiceClient } from "@/lib/supabase/server";
+import { db } from '@/lib/db';
+import { notifications, users } from '@/lib/db/schema';
+import { eq } from 'drizzle-orm';
 
-export async function notifyUser(input: { userId: string; type: string; content: string; referenceId?: string }) {
-  const supabase = createSupabaseServiceClient();
-  await supabase.from("notifications").insert({
-    user_id: input.userId,
+export async function notifyUser(input: {
+  userId: string;
+  type: string;
+  content: string;
+  referenceId?: string;
+}) {
+  await db.insert(notifications).values({
+    userId: input.userId,
     type: input.type,
     content: input.content,
-    reference_id: input.referenceId,
+    referenceId: input.referenceId ?? null,
   });
 }
 
-export async function notifyUsersByIndustry(industry: string, content: string, referenceId: string) {
-  const supabase = createSupabaseServiceClient();
-  const { data: users } = await supabase.from("users").select("id").eq("industry", industry);
-  if (!users?.length) return;
-  await supabase.from("notifications").insert(
-    users.map((user) => ({
-      user_id: user.id,
-      type: "job",
+export async function notifyUsersByIndustry(industry: string, content: string, referenceId?: string) {
+  const userList = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.industry, industry));
+  if (userList.length === 0) return;
+  await db.insert(notifications).values(
+    userList.map((u) => ({
+      userId: u.id,
+      type: 'job',
       content,
-      reference_id: referenceId,
-    })),
+      referenceId: referenceId ?? null,
+    }))
   );
 }
 
-export async function notifyAllUsers(content: string, referenceId: string) {
-  const supabase = createSupabaseServiceClient();
-  const { data: users } = await supabase.from("users").select("id");
-  if (!users?.length) return;
-  await supabase.from("notifications").insert(
-    users.map((user) => ({
-      user_id: user.id,
-      type: "sponsored",
+export async function notifyAllUsers(content: string, referenceId?: string) {
+  const userList = await db.select({ id: users.id }).from(users);
+  if (userList.length === 0) return;
+  await db.insert(notifications).values(
+    userList.map((u) => ({
+      userId: u.id,
+      type: 'sponsored',
       content,
-      reference_id: referenceId,
-    })),
+      referenceId: referenceId ?? null,
+    }))
   );
 }

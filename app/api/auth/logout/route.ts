@@ -1,14 +1,10 @@
-import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { ok, serverError } from "@/lib/api/response";
-export const dynamic = 'force-dynamic'
+import { NextResponse } from 'next/server';
 
 export async function POST() {
-  try {
-    const supabase = createSupabaseServerClient();
-    await supabase.auth.signOut();
-    return ok({ signed_out: true });
-  } catch {
-    return serverError();
-  }
+  const response = NextResponse.json({ data: { success: true }, error: null, status: 200 });
+  response.cookies.delete('next-auth.session-token');
+  response.cookies.delete('__Secure-next-auth.session-token');
+  response.cookies.delete('next-auth.csrf-token');
+  response.cookies.delete('__Host-next-auth.csrf-token');
+  return response;
 }
-

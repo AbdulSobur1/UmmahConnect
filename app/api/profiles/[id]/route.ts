@@ -1,30 +1,23 @@
 import { NextRequest } from 'next/server';
+import { db } from '@/lib/db';
+import { users } from '@/lib/db/schema';
 import { withHandler, ok, err } from '@/lib/api/helpers';
 import { publicProfileDto } from '@/lib/api/mappers';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
-import type { UserRow } from '@/lib/supabase/types';
+import { eq } from 'drizzle-orm';
 export const dynamic = 'force-dynamic'
-
-type UserWithBan = UserRow & { is_banned?: boolean | null };
 
 export const GET = withHandler(async (_req: NextRequest, ctx?: unknown) => {
   const params = (ctx as { params: { id: string } }).params;
-  const supabase = createSupabaseServerClient();
-  const { data, error } = await supabase
-    .from('users')
-    .select('id, full_name, industry, career_stage, city, country, bio, skills, open_to_opportunities, created_at')
-    .eq('id', params.id)
-    .single();
+  const [data] = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, params.id))
+    .limit(1);
 
-  if (error || !data) {
+  if (!data || data.isBanned) {
     return err('Profile not found', 404);
   }
 
-  const profile = data as UserWithBan;
-  if (profile.is_banned) {
-    return err('Profile not found', 404);
-  }
-
-  return ok(publicProfileDto(profile));
+  return ok(publicProfileDto(data as any));
 });
 

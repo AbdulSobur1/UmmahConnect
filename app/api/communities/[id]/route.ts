@@ -1,42 +1,41 @@
 import { NextRequest } from 'next/server';
+import { db } from '@/lib/db';
+import { communities, posts, users } from '@/lib/db/schema';
 import { withHandler, ok, err } from '@/lib/api/helpers';
 import { communityDto, postDto } from '@/lib/api/mappers';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
-import type { PostRow, UserRow } from '@/lib/supabase/types';
+import { eq, desc } from 'drizzle-orm';
 export const dynamic = 'force-dynamic'
-
-type JoinedPost = PostRow & { users?: UserRow | null };
 
 export const GET = withHandler(async (_req: NextRequest, ctx?: unknown) => {
   const params = (ctx as { params: { id: string } }).params;
-  const supabase = createSupabaseServerClient();
-  const { data: community, error } = await supabase
-    .from('communities')
-    .select('*')
-    .eq('id', params.id)
-    .single();
+  const [community] = await db
+    .select()
+    .from(communities)
+    .where(eq(communities.id, params.id))
+    .limit(1);
 
-  if (error || !community) {
+  if (!community) {
     return err('Community not found', 404);
   }
 
-  if (community.is_private) {
+  if (community.isPrivate) {
     return ok({
-      ...communityDto(community),
+      ...communityDto(community as any),
       is_private: true,
     });
   }
 
-  const { data: posts } = await supabase
-    .from('posts')
-    .select('*, users(*)')
-    .eq('community_id', params.id)
-    .order('created_at', { ascending: false })
+  const postRows = await db
+    .select()
+    .from(posts)
+    .leftJoin(users, eq(posts.userId, users.id))
+    .where(eq(posts.communityId, params.id))
+    .orderBy(desc(posts.createdAt))
     .limit(20);
 
   return ok({
-    ...communityDto(community),
-    posts: ((posts ?? []) as unknown as JoinedPost[]).map(postDto),
+    ...communityDto(community as any),
+    posts: (postRows ?? []).map((row: any) => postDto({ ...row.posts, users: row.users })),
   });
 });
 

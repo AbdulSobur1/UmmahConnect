@@ -1,53 +1,45 @@
 import { NextRequest } from 'next/server';
+import { db } from '@/lib/db';
+import { posts, comments, users } from '@/lib/db/schema';
 import { requireAuth } from '@/lib/api/auth';
 import { withHandler, ok, err } from '@/lib/api/helpers';
 import { postDto, publicProfileDto } from '@/lib/api/mappers';
 import { fail, serverError } from '@/lib/api/response';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
-import type { CommentRow, PostRow, UserRow } from '@/lib/supabase/types';
+import { eq, asc, and } from 'drizzle-orm';
 export const dynamic = 'force-dynamic'
-
-type JoinedPost = PostRow & { users?: UserRow | null };
-type JoinedComment = CommentRow & { users?: UserRow | null };
-
-function commentDto(comment: JoinedComment) {
-  return {
-    id: comment.id,
-    post_id: comment.post_id,
-    user_id: comment.user_id,
-    content: comment.content,
-    created_at: comment.created_at ?? '',
-    user: comment.users ? publicProfileDto(comment.users) : null,
-  };
-}
 
 export const GET = withHandler(async (_req: NextRequest, ctx?: unknown) => {
   const params = (ctx as { params: { id: string } }).params;
-  const supabase = createSupabaseServerClient();
-  const { data: post, error } = await supabase
-    .from('posts')
-    .select('*, users(*)')
-    .eq('id', params.id)
-    .single();
+  const [post] = await db
+    .select()
+    .from(posts)
+    .leftJoin(users, eq(posts.userId, users.id))
+    .where(eq(posts.id, params.id))
+    .limit(1);
 
-  if (error || !post) {
+  if (!post || !post.posts || post.posts.isDeleted) {
     return err('Post not found', 404);
   }
 
-  const postRecord = post as JoinedPost & { is_deleted?: boolean };
-  if (postRecord.is_deleted) {
-    return err('Post not found', 404);
-  }
+  const commentRows = await db
+    .select()
+    .from(comments)
+    .leftJoin(users, eq(comments.userId, users.id))
+    .where(eq(comments.postId, params.id))
+    .orderBy(asc(comments.createdAt));
 
-  const { data: comments } = await supabase
-    .from('comments')
-    .select('*, users(id, full_name, industry, career_stage, city, country, bio, skills, open_to_opportunities, created_at)')
-    .eq('post_id', params.id)
-    .order('created_at');
+  const commentList = (commentRows ?? []).map((row: any) => ({
+    id: row.comments.id,
+    post_id: row.comments.postId,
+    user_id: row.comments.userId,
+    content: row.comments.content,
+    created_at: row.comments.createdAt ?? '',
+    user: row.users ? publicProfileDto(row.users) : null,
+  }));
 
   return ok({
-    ...postDto(post as unknown as JoinedPost),
-    comments: ((comments ?? []) as unknown as JoinedComment[]).map(commentDto),
+    ...postDto({ ...post.posts, users: post.users } as any),
+    comments: commentList,
   });
 });
 
@@ -55,11 +47,12 @@ export async function DELETE(_: Request, { params }: { params: { id: string } })
   try {
     const auth = await requireAuth();
     if ('error' in auth) return fail(auth.error, 401);
-    const supabase = createSupabaseServerClient();
-    await supabase.from('posts').delete().eq('id', params.id).eq('user_id', auth.userId);
+    await db
+      .update(posts)
+      .set({ isDeleted: true })
+      .where(and(eq(posts.id, params.id), eq(posts.userId, auth.userId)));
     return ok({ deleted: true });
   } catch {
     return serverError();
   }
 }
-

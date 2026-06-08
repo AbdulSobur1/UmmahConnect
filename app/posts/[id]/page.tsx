@@ -6,12 +6,11 @@ import { PostPublicClient } from '@/components/public/PostPublicClient';
 import { postDto, publicProfileDto } from '@/lib/api/mappers';
 import { getSessionUser } from '@/lib/auth/session';
 import { getDemoPost, isDemoMode } from '@/lib/demo/server';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
-import type { CommentRow, PostRow, UserRow } from '@/lib/supabase/types';
+import { db } from '@/lib/db';
+import { posts, users, comments } from '@/lib/db/schema';
+import { eq, asc } from 'drizzle-orm';
 
 type PageProps = { params: { id: string } };
-type JoinedPost = PostRow & { users?: UserRow | null };
-type JoinedComment = CommentRow & { users?: UserRow | null };
 
 type PostWithComments = ReturnType<typeof postDto> & {
   comments: Array<{
@@ -24,21 +23,26 @@ type PostWithComments = ReturnType<typeof postDto> & {
 
 async function fetchPost(id: string): Promise<PostWithComments | null> {
   if (isDemoMode()) return getDemoPost(id) as PostWithComments | null;
-  const supabase = createSupabaseServerClient();
-  const { data: post } = await supabase.from('posts').select('*, users(*)').eq('id', id).single();
+  const [post] = await db
+    .select()
+    .from(posts)
+    .leftJoin(users, eq(posts.userId, users.id))
+    .where(eq(posts.id, id))
+    .limit(1);
   if (!post) return null;
-  const { data: comments } = await supabase
-    .from('comments')
-    .select('*, users(id, full_name, industry, career_stage, city, country, bio, skills, open_to_opportunities, created_at)')
-    .eq('post_id', id)
-    .order('created_at');
+  const commentRows = await db
+    .select()
+    .from(comments)
+    .leftJoin(users, eq(comments.userId, users.id))
+    .where(eq(comments.postId, id))
+    .orderBy(asc(comments.createdAt));
   return {
-    ...postDto(post as unknown as JoinedPost),
-    comments: ((comments ?? []) as unknown as JoinedComment[]).map((c) => ({
-      id: c.id,
-      content: c.content,
-      created_at: c.created_at ?? '',
-      user: c.users ? publicProfileDto(c.users) : null,
+    ...postDto({ ...post.posts, users: post.users } as any),
+    comments: (commentRows ?? []).map((row: any) => ({
+      id: row.comments.id,
+      content: row.comments.content,
+      created_at: row.comments.createdAt ?? '',
+      user: row.users ? publicProfileDto(row.users) : null,
     })),
   };
 }

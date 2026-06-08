@@ -1,31 +1,26 @@
 import { NextRequest } from 'next/server';
+import { db } from '@/lib/db';
+import { jobs } from '@/lib/db/schema';
 import { withHandler, ok, err } from '@/lib/api/helpers';
 import { jobDto } from '@/lib/api/mappers';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { and, eq } from 'drizzle-orm';
 export const dynamic = 'force-dynamic'
 
 export const GET = withHandler(async (_req: NextRequest, ctx?: unknown) => {
   const params = (ctx as { params: { id: string } }).params;
-  const supabase = createSupabaseServerClient();
-  const { data, error } = await supabase
-    .from('jobs')
-    .select('*')
-    .eq('id', params.id)
-    .eq('is_active', true)
-    .eq('is_halal_verified', true)
-    .single();
+  const [data] = await db
+    .select()
+    .from(jobs)
+    .where(and(eq(jobs.id, params.id), eq(jobs.isActive, true), eq(jobs.isHalalVerified, true)))
+    .limit(1);
 
-  if (error || !data) {
+  if (!data) {
     return err('Job not found', 404);
   }
 
   // Fire-and-forget view count increment
-  supabase
-    .from('jobs')
-    .update({ views_count: (data.views_count ?? 0) + 1 })
-    .eq('id', params.id)
-    .then();
+  db.update(jobs).set({ viewsCount: (data.viewsCount ?? 0) + 1 }).where(eq(jobs.id, params.id)).then();
 
-  return ok(jobDto(data));
+  return ok(jobDto(data as any));
 });
 

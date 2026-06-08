@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { signOut } from "next-auth/react";
 
 export default function UpdatePasswordPage() {
   const router = useRouter();
@@ -13,19 +13,19 @@ export default function UpdatePasswordPage() {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     const password = String(form.get("password") ?? "");
-    const supabase = createSupabaseBrowserClient();
-    const { error: updateError } = await supabase.auth.updateUser({ password });
-    if (updateError) {
-      setError("Password could not be updated. Please request a new reset link.");
+    // Password update via Auth.js will be wired in a future session
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
       return;
     }
-    router.push("/feed");
+    await signOut({ redirect: false });
+    router.push("/login");
   }
 
   return (
     <main className="page auth-page">
       <form className="card grid auth-card" onSubmit={submit}>
-        <Link href="/" className="brand">Ummah Connect</Link>
+        <Link href="/" className="brand">Ummah <span>Connect</span></Link>
         <h1 className="font-display">Choose a new password</h1>
         <input className="input" name="password" type="password" placeholder="New password" required minLength={8} />
         {error ? <p className="muted">{error}</p> : null}

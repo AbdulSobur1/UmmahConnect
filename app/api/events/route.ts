@@ -1,22 +1,19 @@
-import { withHandler, ok, err } from '@/lib/api/helpers';
+import { db } from '@/lib/db';
+import { eventListings } from '@/lib/db/schema';
 import { eventDto } from '@/lib/api/mappers';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
-export const dynamic = 'force-dynamic'
+import { withHandler, ok, err } from '@/lib/api/helpers';
+import { and, eq, gte } from 'drizzle-orm';
 
 export const GET = withHandler(async () => {
   const today = new Date().toISOString().slice(0, 10);
-  const supabase = createSupabaseServerClient();
-  const { data, error } = await supabase
-    .from('event_listings')
-    .select('*')
-    .eq('is_active', true)
-    .gte('event_date', today)
-    .order('event_date');
-
-  if (error) {
+  try {
+    const data = await db
+      .select()
+      .from(eventListings)
+      .where(and(eq(eventListings.isActive, true), gte(eventListings.eventDate, today)))
+      .orderBy(eventListings.eventDate);
+    return ok((data ?? []).map(eventDto as any));
+  } catch {
     return err('Could not load events', 500);
   }
-
-  return ok((data ?? []).map(eventDto));
 });
-

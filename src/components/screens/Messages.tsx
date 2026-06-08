@@ -6,8 +6,6 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Avatar } from "@/components/Avatar";
 import { apiGet, apiSend } from "@/lib/api/client";
 import type { Message, User } from "@/lib/mock";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-
 export function Messages() {
   const queryClient = useQueryClient();
   const me = useQuery({ queryKey: ["me"], queryFn: () => apiGet<User>("/api/users/me") });
@@ -26,20 +24,6 @@ export function Messages() {
   useEffect(() => {
     if (!activeUserId && users.data?.[0]) setActiveUserId(users.data[0].id);
   }, [activeUserId, users.data]);
-
-  useEffect(() => {
-    if (!me.data) return;
-    const supabase = createSupabaseBrowserClient();
-    const channel = supabase
-      .channel("messages")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `receiver_id=eq.${me.data.id}` }, () => {
-        void queryClient.invalidateQueries({ queryKey: ["messages"], exact: false });
-      })
-      .subscribe();
-    return () => {
-      void supabase.removeChannel(channel);
-    };
-  }, [me.data, queryClient]);
 
   const active = useMemo(() => users.data?.find((user) => user.id === activeUserId), [activeUserId, users.data]);
 

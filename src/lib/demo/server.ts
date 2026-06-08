@@ -4,15 +4,13 @@ import {
   jobs as mockJobs,
   users as mockUsers,
 } from '@/lib/mock';
-import { publicProfileDto } from '@/lib/api/mappers';
-import { communityDto, jobDto, postDto } from '@/lib/api/mappers';
-import type { UserRow } from '@/lib/supabase/types';
+import { publicProfileDto, communityDto, jobDto, postDto } from '@/lib/api/mappers';
+import type { UserRow } from '@/lib/api/mappers';
 
 export function isDemoMode(): boolean {
   return (
     process.env.NEXT_PUBLIC_DEMO_MODE === 'true' ||
-    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    !process.env.DATABASE_URL
   );
 }
 

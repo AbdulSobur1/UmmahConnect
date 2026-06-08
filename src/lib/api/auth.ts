@@ -1,27 +1,38 @@
-import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { UserRow } from "@/lib/supabase/types";
+import { auth } from '@/lib/auth';
+import { db } from '@/lib/db';
+import { users } from '@/lib/db/schema';
+import { eq } from 'drizzle-orm';
 
 export type AuthContext = {
   userId: string;
   email: string;
-  profile: UserRow;
+  plan: string;
 };
 
-export async function requireAuth(): Promise<AuthContext | { error: "unauthorized" }> {
-  const supabase = createSupabaseServerClient();
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-
-  if (error || !user?.id || !user.email) {
-    return { error: "unauthorized" };
+export async function requireAuth(): Promise<AuthContext | { error: 'unauthorized' }> {
+  const session = await auth();
+  if (!session?.user?.id || !session.user.email) {
+    return { error: 'unauthorized' };
   }
+  return {
+    userId: session.user.id,
+    email: session.user.email,
+    plan: (session.user as { plan?: string }).plan ?? 'free',
+  };
+}
 
-  const { data: profile } = await supabase.from("users").select("*").eq("id", user.id).single();
+export async function requireAuthWithProfile() {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { error: 'unauthorized' as const };
+  }
+  const [profile] = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, session.user.id))
+    .limit(1);
   if (!profile) {
-    return { error: "unauthorized" };
+    return { error: 'unauthorized' as const };
   }
-
-  return { userId: user.id, email: user.email, profile };
+  return { userId: session.user.id, email: session.user.email, profile, plan: profile.plan };
 }

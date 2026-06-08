@@ -6,29 +6,44 @@ import { CommunityPublicClient } from '@/components/public/CommunityPublicClient
 import { communityDto, postDto } from '@/lib/api/mappers';
 import { getSessionUser } from '@/lib/auth/session';
 import { getDemoCommunity, isDemoMode } from '@/lib/demo/server';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
-import type { PostRow, UserRow } from '@/lib/supabase/types';
+import { db } from '@/lib/db';
+import { communities, posts, users } from '@/lib/db/schema';
+import { eq, desc } from 'drizzle-orm';
 
 type PageProps = { params: { id: string } };
-type JoinedPost = PostRow & { users?: UserRow | null };
 
 async function fetchCommunity(id: string) {
   if (isDemoMode()) return getDemoCommunity(id);
-  const supabase = createSupabaseServerClient();
-  const { data: community } = await supabase.from('communities').select('*').eq('id', id).single();
+  const [community] = await db
+    .select()
+    .from(communities)
+    .where(eq(communities.id, id))
+    .limit(1);
   if (!community) return null;
-  if (community.is_private) {
-    return { ...communityDto(community), is_private: true as const };
+  const communityData = communityDto({
+    id: community.id,
+    name: community.name,
+    icon: community.icon,
+    description: community.description,
+    is_private: community.isPrivate,
+    member_count: community.memberCount,
+    created_at: community.createdAt?.toISOString() ?? null,
+  });
+  if (community.isPrivate) {
+    return { ...communityData, is_private: true as const };
   }
-  const { data: posts } = await supabase
-    .from('posts')
-    .select('*, users(*)')
-    .eq('community_id', id)
-    .order('created_at', { ascending: false })
+  const postRows = await db
+    .select()
+    .from(posts)
+    .leftJoin(users, eq(posts.userId, users.id))
+    .where(eq(posts.communityId, id))
+    .orderBy(desc(posts.createdAt))
     .limit(20);
   return {
-    ...communityDto(community),
-    posts: ((posts ?? []) as unknown as JoinedPost[]).map(postDto),
+    ...communityData,
+    posts: (postRows ?? []).map((row: any) =>
+      postDto({ ...row.posts, users: row.users }),
+    ),
   };
 }
 
@@ -48,7 +63,7 @@ export default async function PublicCommunityPage({ params }: PageProps) {
   if (!community) notFound();
 
   const isPrivate = 'is_private' in community && community.is_private === true;
-  const posts = 'posts' in community ? community.posts : [];
+  const communityPosts = 'posts' in community ? community.posts : [];
 
   return (
     <PublicLayout user={user}>
@@ -77,7 +92,7 @@ export default async function PublicCommunityPage({ params }: PageProps) {
             ) : (
               <CommunityPublicClient
                 communityId={community.id}
-                posts={posts.map((p) => ({
+                posts={communityPosts.map((p: any) => ({
                   id: p.id,
                   content: p.content,
                   likes_count: p.likes_count,

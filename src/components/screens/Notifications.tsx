@@ -5,8 +5,6 @@ import { Bell, CheckCheck } from "lucide-react";
 import { useEffect } from "react";
 import { apiGet, apiSend } from "@/lib/api/client";
 import type { Notification, User } from "@/lib/mock";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-
 export function Notifications() {
   const queryClient = useQueryClient();
   const me = useQuery({ queryKey: ["me"], queryFn: () => apiGet<User>("/api/users/me") });
@@ -20,17 +18,6 @@ export function Notifications() {
       void queryClient.invalidateQueries({ queryKey: ["notifications"] });
     },
   });
-
-  useEffect(() => {
-    if (!me.data) return;
-    const supabase = createSupabaseBrowserClient();
-    const channel = supabase.channel("notifications").on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${me.data.id}` }, () => {
-      void queryClient.invalidateQueries({ queryKey: ["notifications"] });
-    }).subscribe();
-    return () => {
-      void supabase.removeChannel(channel);
-    };
-  }, [me.data, queryClient]);
 
   if (notifications.isLoading) return <div className="skeleton" />;
   if (notifications.error) return <div className="card" style={{ padding: 24 }}><h2>Notifications did not load</h2><button className="btn btn-primary" onClick={() => void notifications.refetch()}>Retry</button></div>;

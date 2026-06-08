@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
+import { auth } from '@/lib/auth';
 import { ZodSchema } from 'zod';
 
 export function ok<T>(data: T, status = 200) {
@@ -22,18 +21,12 @@ export function getClientIp(req: NextRequest): string {
   );
 }
 
-export async function requireAuth(req: NextRequest) {
-  const cookieStore = cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { cookies: { get: (name: string) => cookieStore.get(name)?.value } }
-  );
-  const { data: { user }, error } = await supabase.auth.getUser();
-  if (!user || error) {
+export async function requireAuth() {
+  const session = await auth();
+  if (!session?.user?.id) {
     throw { status: 401, message: 'Authentication required' };
   }
-  return user;
+  return { userId: session.user.id, plan: (session.user as { plan?: string }).plan ?? 'free' };
 }
 
 export async function parseBody<T>(req: NextRequest, schema: ZodSchema<T>): Promise<T> {

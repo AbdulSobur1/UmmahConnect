@@ -6,27 +6,38 @@ import { ProfileActions } from '@/components/public/ProfileActions';
 import { publicProfileDto } from '@/lib/api/mappers';
 import { getSessionUser } from '@/lib/auth/session';
 import { getDemoProfile, isDemoMode } from '@/lib/demo/server';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
-import type { UserRow } from '@/lib/supabase/types';
+import { db } from '@/lib/db';
+import { users } from '@/lib/db/schema';
+import { eq } from 'drizzle-orm';
 
 type PageProps = { params: { id: string } };
-
-type UserWithBan = UserRow & { is_banned?: boolean | null };
 
 async function fetchProfile(id: string) {
   if (isDemoMode()) {
     return getDemoProfile(id);
   }
-  const supabase = createSupabaseServerClient();
-  const { data } = await supabase
-    .from('users')
-    .select('id, full_name, industry, career_stage, city, country, bio, skills, open_to_opportunities, created_at')
-    .eq('id', id)
-    .single();
-  if (!data) return null;
-  const profile = data as UserWithBan;
-  if (profile.is_banned) return null;
-  return publicProfileDto(profile);
+  const [data] = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, id))
+    .limit(1);
+  if (!data || data.isBanned) return null;
+  return publicProfileDto({
+    id: data.id,
+    full_name: data.fullName,
+    email: data.email,
+    industry: data.industry,
+    career_stage: data.careerStage,
+    city: data.city,
+    country: data.country,
+    bio: data.bio,
+    skills: data.skills ?? [],
+    plan: data.plan,
+    show_photo: data.showPhoto,
+    open_to_opportunities: data.openToOpportunities,
+    avatar_url: data.avatarUrl,
+    created_at: data.createdAt?.toISOString() ?? null,
+  });
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -69,7 +80,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
             {profile.bio ? <p className="public-text">{profile.bio}</p> : null}
             {profile.skills.length > 0 ? (
               <div className="row row--wrap public-skill-row">
-                {profile.skills.map((skill) => (
+                {profile.skills.map((skill: string) => (
                   <span className="pill" key={skill}>{skill}</span>
                 ))}
               </div>

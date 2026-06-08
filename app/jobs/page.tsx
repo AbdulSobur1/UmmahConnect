@@ -5,7 +5,9 @@ import { JobsPublicClient } from '@/components/public/JobsPublicClient';
 import { jobDto } from '@/lib/api/mappers';
 import { getSessionUser } from '@/lib/auth/session';
 import { getDemoJobs, isDemoMode } from '@/lib/demo/server';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { db } from '@/lib/db';
+import { jobs } from '@/lib/db/schema';
+import { and, eq, desc } from 'drizzle-orm';
 
 export const metadata: Metadata = {
   title: 'Halal Jobs in Nigeria — Ummah Connect',
@@ -18,18 +20,16 @@ export const metadata: Metadata = {
 
 async function fetchJobs() {
   if (isDemoMode()) return getDemoJobs();
-  const supabase = createSupabaseServerClient();
-  const { data } = await supabase
-    .from('jobs')
-    .select('*')
-    .eq('is_active', true)
-    .eq('is_halal_verified', true)
-    .order('created_at', { ascending: false });
-  return (data ?? []).map(jobDto);
+  const data = await db
+    .select()
+    .from(jobs)
+    .where(and(eq(jobs.isActive, true), eq(jobs.isHalalVerified, true)))
+    .orderBy(desc(jobs.createdAt));
+  return (data ?? []).map((j: any) => jobDto(j));
 }
 
 export default async function PublicJobsPage() {
-  const [jobs, user] = await Promise.all([fetchJobs(), getSessionUser()]);
+  const [jobList, user] = await Promise.all([fetchJobs(), getSessionUser()]);
 
   return (
     <PublicLayout user={user}>
@@ -44,7 +44,7 @@ export default async function PublicJobsPage() {
               <p className="muted">Verified opportunities for Muslim professionals in Nigeria.</p>
             </div>
           </div>
-          <JobsPublicClient jobs={jobs} user={user} />
+          <JobsPublicClient jobs={jobList} user={user} />
         </div>
       </main>
     </PublicLayout>
