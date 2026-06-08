@@ -32,8 +32,8 @@ async function fetchProfile(id: string) {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const profile = await fetchProfile(params.id);
   if (!profile) return { title: 'Profile not found' };
-  const title = `${profile.full_name} — ${profile.industry} on UmmahConnect`;
-  const description = profile.bio || `${profile.full_name} on UmmahConnect`;
+  const title = `${profile.full_name} — ${profile.industry} on Ummah Connect`;
+  const description = profile.bio || `${profile.full_name} on Ummah Connect`;
   return {
     title,
     description,

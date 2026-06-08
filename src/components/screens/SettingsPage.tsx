@@ -1,7 +1,8 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Bell, Crown, Eye, Lock, Shield } from "lucide-react";
+import Link from "next/link";
+import { Bell, Crown, Eye, KeyRound, Lock, Shield } from "lucide-react";
 import { FormEvent, useState } from "react";
 import { Modal } from "@/components/Modal";
 import { apiGet, apiSend } from "@/lib/api/client";
@@ -40,7 +41,10 @@ export function SettingsPage() {
             <input className="input" name="full_name" defaultValue={currentUser.full_name} />
             <input className="input" name="email" defaultValue={currentUser.email} />
             <input className="input" name="city" defaultValue={currentUser.city} />
-            <button className="btn btn-primary" style={{ justifySelf: "start" }}>Save account</button>
+            <div className="row row--wrap">
+              <button className="btn btn-primary">Save account</button>
+              <Link className="btn btn-ghost" href="/reset-password"><KeyRound size={17} /> Change password</Link>
+            </div>
           </form>
         ) : null}
         {activeTab === "Privacy" ? (
@@ -52,7 +56,7 @@ export function SettingsPage() {
           </div>
         ) : null}
         {activeTab === "Plan" ? (
-          <div className="grid"><div className="row"><Crown color="#C9A84C" /><strong>Current plan: {currentUser.plan}</strong></div><p className="muted">Free gives you core access with weekly messaging limits. Pro unlocks full mentorship and job posting.</p><button className="btn btn-accent" style={{ justifySelf: "start" }} onClick={() => setShowPlan(true)}>Compare plans</button></div>
+          <div className="grid"><div className="row"><Crown color="#C9A84C" /><strong>Current plan: {currentUser.plan}</strong></div><p className="muted">Free includes 10 messages per week. Pro unlocks unlimited messaging, full mentorship, private groups, profile analytics, and job posting.</p><button className="btn btn-accent" style={{ justifySelf: "start" }} onClick={() => setShowPlan(true)}>Compare plans</button></div>
         ) : null}
         {activeTab === "Notifications" ? (
           <div className="grid"><div className="row"><Bell color="#1A6B5C" /><strong>Notification preferences</strong></div>{["Connection requests", "New messages", "Mentorship updates", "Matching jobs", "Sponsored events"].map((label) => <label className="row space-between" key={label}><span>{label}</span><input type="checkbox" defaultChecked /></label>)}</div>
@@ -60,7 +64,11 @@ export function SettingsPage() {
       </section>
       {showPlan ? (
         <Modal title="Plan comparison" onClose={() => setShowPlan(false)}>
-          <div className="grid three-col">{["Free", "Pro", "Event Sponsor"].map((plan, index) => <article className="card" style={{ padding: 16, boxShadow: "none" }} key={plan}><h3>{plan}</h3><strong>{index === 0 ? "₦0" : index === 1 ? "₦9,000/month" : "from ₦49,000/event"}</strong><p className="muted">{index === 0 ? "10 messages weekly" : index === 1 ? "Full access" : "Promoted event slots"}</p></article>)}</div>
+          <div className="grid three-col">
+            <article className="card" style={{ padding: 16, boxShadow: "none" }}><h3>Free</h3><strong>₦0/month</strong><p className="muted">Professional profile, public communities, 30 connections, 10 messages per week, browse jobs and mentorship.</p></article>
+            <article className="card" style={{ padding: 16, boxShadow: "none" }}><h3>Pro</h3><strong>₦9,000/month</strong><p className="muted">Unlimited connections and messaging, job posting, full mentorship matching, halal job alerts, analytics, private groups.</p></article>
+            <article className="card" style={{ padding: 16, boxShadow: "none" }}><h3>Event Sponsor</h3><strong>From ₦49,000/event</strong><p className="muted">For organisations only: featured events, sponsored slots, targeting, analytics, and Verified Organiser badge.</p></article>
+          </div>
         </Modal>
       ) : null}
     </div>

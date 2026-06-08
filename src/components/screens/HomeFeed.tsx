@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CalendarDays, Heart, MessageCircle, Plus, Send, Sunrise } from "lucide-react";
+import { CalendarDays, Heart, MessageCircle, Send, Share2, Star, Sunrise } from "lucide-react";
 import { FormEvent } from "react";
 import { Avatar } from "@/components/Avatar";
 import { apiGet, apiSend } from "@/lib/api/client";
@@ -52,9 +52,9 @@ export function HomeFeed() {
       <div className="screen-title">
         <div>
           <h1>Home Feed</h1>
-          <p className="muted">Assalamu alaikum, {currentUser?.full_name.split(" ")[0]}. Here is what your network is building.</p>
+          <p className="muted">Assalamu Alaikum, {currentUser?.full_name.split(" ")[0]} 👋</p>
         </div>
-        <span className="pill">Free plan · {weekly.data?.remaining ?? 0} messages left</span>
+        <span className="pill">{weekly.data?.count ?? 0} of 10 messages used this week</span>
       </div>
 
       <div className="grid two-col">
@@ -89,6 +89,10 @@ export function HomeFeed() {
             </div>
           </form>
 
+          {(posts.data ?? []).length === 0 ? (
+            <div className="card" style={{ padding: 20 }}><strong>No posts yet — be the first to share with your community</strong></div>
+          ) : null}
+
           {(posts.data ?? []).map((post) => (
             <article className="card" key={post.id}>
               <div className="row space-between">
@@ -105,6 +109,7 @@ export function HomeFeed() {
               <div className="row" style={{ color: "#6B7E78" }}>
                 <span className="row"><Heart size={17} /> {post.likes_count}</span>
                 <span className="row"><MessageCircle size={17} /> {post.comments_count}</span>
+                <span className="row"><Share2 size={17} /> Share</span>
               </div>
             </article>
           ))}
@@ -112,8 +117,8 @@ export function HomeFeed() {
 
         <aside className="grid" style={{ alignContent: "start" }}>
           {event ? (
-            <article className="card">
-              <div className="row space-between"><strong>Sponsored event</strong><CalendarDays color="#C9A84C" /></div>
+            <article className="card sponsored-card">
+              <div className="row space-between"><strong className="sponsored-label"><Star size={15} /> Sponsored Event</strong><CalendarDays color="#C9A84C" /></div>
               <h2 className="font-display">{event.title}</h2>
               <p className="muted">{event.event_date} · {event.location_detail} · {event.location_type}</p>
               <button className="btn btn-accent" onClick={() => void apiSend(`/api/events/${event.id}/click`, "POST")}>Register interest</button>
@@ -121,10 +126,10 @@ export function HomeFeed() {
           ) : null}
 
           <article className="card">
-            <div className="row space-between"><strong>Community quick join</strong><Plus color="#1A6B5C" /></div>
-            <div className="grid" style={{ marginTop: 14 }}>
+            <div className="row space-between"><strong>Community quick-links</strong></div>
+            <div className="community-scroll" style={{ marginTop: 14 }}>
               {(communities.data ?? []).slice(0, 6).map((community) => (
-                <div className="row space-between" key={community.id}><span>{community.name}</span><small className="muted">{community.member_count.toLocaleString()}</small></div>
+                <span className="pill" key={community.id}>{community.name}</span>
               ))}
             </div>
           </article>

@@ -47,7 +47,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const post = await fetchPost(params.id);
   if (!post) return { title: 'Post not found' };
   const title = post.content.slice(0, 60) + (post.content.length > 60 ? '...' : '');
-  const authorName = post.user?.full_name ?? 'UmmahConnect member';
+  const authorName = post.user?.full_name ?? 'Ummah Connect member';
   return {
     title,
     description: post.content,

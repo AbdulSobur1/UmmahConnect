@@ -111,7 +111,7 @@ const plans = [
     price: "₦0",
     suffix: "/month",
     text: "Always free. Built for discovery and community growth.",
-    features: ["Professional profile", "Join niche communities", "Browse jobs", "Up to 30 connections", "10 messages per week", "Prayer reminders"],
+    features: ["Professional profile", "Browse niche communities", "Connect with up to 30 professionals", "10 messages per week", "Browse jobs and mentorship", "Prayer reminders"],
     cta: "Join free",
   },
   {
@@ -120,7 +120,7 @@ const plans = [
     price: "₦9,000",
     suffix: "/month",
     text: "For serious professionals, mentors, and employers.",
-    features: ["Everything in Free", "Unlimited connections", "Unlimited messaging", "Post job listings", "Full mentorship matching", "Halal job alerts"],
+    features: ["Everything in Free", "Unlimited connections", "Unlimited messaging to all users", "Post job listings and hire", "Full mentorship matching", "Halal job alerts and analytics"],
     cta: "Start Pro",
     featured: true,
   },
@@ -129,8 +129,8 @@ const plans = [
     name: "Sponsor",
     price: "From ₦49,000",
     suffix: "/event",
-    text: "A separate pay-per-event lane for organisers.",
-    features: ["Featured event listing", "Sponsored feed placement", "Target by niche", "Views and click analytics", "Verified organiser badge", "Homepage banner option"],
+    text: "A separate pay-per-event lane for organisations only.",
+    features: ["Featured event listing", "Sponsored feed and homepage banner", "Target by niche or industry", "Views, clicks, registrations", "Verified Organiser badge"],
     cta: "Promote event",
     sponsor: true,
   },
@@ -175,7 +175,7 @@ export function Landing() {
             </div>
           </div>
 
-          <div className="hero-product" aria-label="UmmahConnect product preview">
+          <div className="hero-product" aria-label="Ummah Connect product preview">
             <article className="hero-profile-card">
               <div className="row">
                 <div className="hero-avatar">A</div>

@@ -1,4 +1,4 @@
-# UmmahConnect
+# Ummah Connect
 
 A professional career network for Muslim professionals in Nigeria.
 

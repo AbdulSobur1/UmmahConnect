@@ -8,10 +8,10 @@ import { getDemoJobs, isDemoMode } from '@/lib/demo/server';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 export const metadata: Metadata = {
-  title: 'Halal Jobs in Nigeria — UmmahConnect',
+  title: 'Halal Jobs in Nigeria — Ummah Connect',
   description: 'Browse halal-verified career opportunities for Muslim professionals in Nigeria.',
   openGraph: {
-    title: 'Halal Jobs in Nigeria — UmmahConnect',
+    title: 'Halal Jobs in Nigeria — Ummah Connect',
     description: 'Browse halal-verified career opportunities for Muslim professionals in Nigeria.',
   },
 };

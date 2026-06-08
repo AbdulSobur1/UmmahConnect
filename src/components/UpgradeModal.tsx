@@ -26,7 +26,7 @@ export function UpgradeModal({ onClose }: UpgradeModalProps) {
     <Modal title="Upgrade to Pro" onClose={onClose}>
       <div className="grid" style={{ gap: 14 }}>
         <p className="muted" style={{ marginTop: 0 }}>
-          Pro unlocks job posting, full mentor access, private communities, and expanded messaging for NGN 9,000/month.
+          This is a Pro feature. Upgrade to unlock job posting, full mentor access, private communities, and unlimited messaging for ₦9,000/month and grow with people who truly get you.
         </p>
         <div className="card" style={{ padding: 18, boxShadow: "none" }}>
           <div className="row">

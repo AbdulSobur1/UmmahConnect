@@ -56,7 +56,7 @@ export function Profile() {
       </div>
 
       <div className="grid three-col" style={{ marginTop: 18 }}>
-        {[["Connections", "248"], ["Posts", String(posts.data?.filter((post) => post.user_id === currentUser.id).length ?? 0)], ["Profile views", "1,204"]].map(([label, value]) => (
+        {[["Connections", "248"], ["Communities", "5"], ["Posts", String(posts.data?.filter((post) => post.user_id === currentUser.id).length ?? 0)]].map(([label, value]) => (
           <article className="card" style={{ padding: 20 }} key={label}><p className="muted" style={{ margin: 0 }}>{label}</p><strong style={{ fontSize: 30 }}>{value}</strong></article>
         ))}
       </div>
@@ -64,15 +64,16 @@ export function Profile() {
       <div className="grid two-col" style={{ marginTop: 18 }}>
         <article className="card" style={{ padding: 20 }}>
           <div className="row"><MessageCircle color="#1A6B5C" /><strong>Weekly messaging counter</strong></div>
-          <p className="muted">Free plan includes 10 outgoing messages per week.</p>
+          <p className="muted">Free users can send and receive messages from anyone, including Pro users. Sending is limited to 10 messages per week.</p>
           <div style={{ height: 10, borderRadius: 999, background: "rgba(26,107,92,0.14)", overflow: "hidden" }}>
             <div style={{ width: `${((weekly.data?.count ?? 0) / 10) * 100}%`, height: "100%", background: "#1A6B5C" }} />
           </div>
-          <p>{weekly.data?.count ?? 0} used · {weekly.data?.remaining ?? 10} remaining</p>
+          <p>{weekly.data?.count ?? 0} of 10 messages used this week</p>
         </article>
         <article className="card" style={{ padding: 20 }}>
           <div className="row"><Mail color="#1A6B5C" /><strong>Opportunities</strong></div>
           <p>{currentUser.open_to_opportunities ? "Open to relevant roles and collaborations." : "Not currently open to opportunities."}</p>
+          {currentUser.open_to_opportunities ? <span className="pill pill--active">Open to Opportunities</span> : null}
           <span className="pill">{currentUser.show_photo ? "Photo visible" : "Photo hidden"}</span>
         </article>
       </div>

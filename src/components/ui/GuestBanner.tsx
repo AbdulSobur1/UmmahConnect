@@ -10,7 +10,7 @@ export function GuestBanner() {
   return (
     <div className="guest-banner">
       <p>
-        You&apos;re viewing UmmahConnect as a guest. <strong>Join free to connect, apply, and belong.</strong>
+        You&apos;re viewing Ummah Connect as a guest. <strong>Join free to connect, apply, and belong.</strong>
       </p>
       <div className="guest-banner__actions">
         <Link href={`/signup?next=${next}`} className="btn btn-accent">

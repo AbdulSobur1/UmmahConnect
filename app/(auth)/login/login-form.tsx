@@ -62,7 +62,7 @@ export default function LoginForm() {
       <form className="auth-card" onSubmit={submit}>
         <Link href="/" className="auth-logo">Ummah <span>Connect</span></Link>
         <h1>Welcome back</h1>
-        <p className="auth-subtitle">Sign in to your UmmahConnect account</p>
+        <p className="auth-subtitle">Sign in to your Ummah Connect account</p>
 
         <label className="auth-field">
           <span>Email</span>

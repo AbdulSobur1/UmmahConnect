@@ -16,9 +16,8 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Ummah Connect - Where your deen and career thrive together",
-  description:
-    "Professional networking for Muslim professionals and creatives. Launching in Nigeria.",
+  title: "Ummah Connect - Where your deen and your career are never in conflict.",
+  description: "Professional networking for Muslim professionals and creatives. Launching in Nigeria.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

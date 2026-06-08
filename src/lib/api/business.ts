@@ -24,8 +24,8 @@ export function scoreMentor(user: UserRow, mentor: MentorshipProfileRow & { user
   const userLanguages = ["English"];
   const mentorLanguages = mentor.languages ?? [];
   const overlap = mentorLanguages.filter((language) => userLanguages.includes(language)).length;
-  const languageScore = mentorLanguages.length > 0 ? Math.round((overlap / mentorLanguages.length) * 20) : 0;
-  const locationScore = mentorUser?.city === user.city ? 15 : mentorUser?.country === user.country ? 8 : 0;
+  const locationScore = mentorUser?.city === user.city ? 20 : mentorUser?.country === user.country ? 10 : 0;
+  const languageScore = mentorLanguages.length > 0 ? Math.round((overlap / mentorLanguages.length) * 15) : 0;
   return industryScore + careerScore + languageScore + locationScore;
 }
 

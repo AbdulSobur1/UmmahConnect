@@ -54,7 +54,7 @@ export function Messages() {
 
   return (
     <div>
-      <div className="screen-title"><div><h1>Messages</h1><p className="muted">Private conversations with weekly limits for free accounts.</p></div><span className="pill">{weekly.data?.remaining ?? 0} messages left this week</span></div>
+      <div className="screen-title"><div><h1>Messages</h1><p className="muted">Private conversations with weekly limits for free accounts.</p></div><span className="pill">{weekly.data?.count ?? 0} of 10 messages used this week</span></div>
       {send.error ? <div className="card" style={{ padding: 14, marginBottom: 14 }}><strong>Message not sent.</strong><p className="muted">Free weekly limits or network issues may be blocking this send.</p></div> : null}
       <div className="grid two-col">
         <aside className="card" style={{ padding: 12 }}>

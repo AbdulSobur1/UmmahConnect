@@ -35,7 +35,7 @@ async function fetchCommunity(id: string) {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const community = await fetchCommunity(params.id);
   if (!community) return { title: 'Community not found' };
-  const title = `${community.name} — Muslim Professionals on UmmahConnect`;
+  const title = `${community.name} — Muslim Professionals on Ummah Connect`;
   return {
     title,
     description: community.description,
@@ -72,7 +72,7 @@ export default async function PublicCommunityPage({ params }: PageProps) {
             <p className="public-text">{community.description}</p>
             {isPrivate ? (
               <p className="muted public-copy">
-                This is a private community. Join UmmahConnect to request access.
+                This is a private community. Join Ummah Connect to request access.
               </p>
             ) : (
               <CommunityPublicClient
