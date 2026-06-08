@@ -169,8 +169,8 @@ export function Landing() {
               <Link className="btn btn-accent" href="/signup">
                 Join for Free <ArrowRight size={18} />
               </Link>
-              <Link className="btn btn-ghost" href="/feed">
-                Enter App
+              <Link className="btn btn-ghost" href="/login">
+                Log In
               </Link>
             </div>
           </div>

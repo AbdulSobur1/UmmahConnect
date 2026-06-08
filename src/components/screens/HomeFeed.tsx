@@ -41,20 +41,19 @@ export function HomeFeed() {
     event.currentTarget.reset();
   }
 
-  if (posts.isLoading || me.isLoading) return <LoadingFeed />;
-  if (posts.error || me.error) return <ErrorState retry={() => { void posts.refetch(); void me.refetch(); }} />;
-
   const currentUser = me.data;
   const event = events.data?.[0];
+  const greeting = currentUser ? `Assalamu Alaikum, ${currentUser.full_name.split(" ")[0]} 👋` : "Assalamu Alaikum 👋";
+  const weeklyCount = weekly.data?.count ?? 0;
 
   return (
     <div>
       <div className="screen-title">
         <div>
           <h1>Home Feed</h1>
-          <p className="muted">Assalamu Alaikum, {currentUser?.full_name.split(" ")[0]} 👋</p>
+          <p className="muted">{greeting}</p>
         </div>
-        <span className="pill">{weekly.data?.count ?? 0} of 10 messages used this week</span>
+        <span className="pill">{weeklyCount} of 10 messages used this week</span>
       </div>
 
       <div className="grid two-col">
@@ -64,9 +63,9 @@ export function HomeFeed() {
               <div className="row">
                 <Sunrise color="#5ECDB5" />
                 <div>
-                  <strong>Next prayer in {currentUser?.city}</strong>
+                  <strong>Next prayer in {currentUser?.city ?? "your area"}</strong>
                   <p className="muted" style={{ margin: "4px 0 0" }}>
-                    {prayer.data ? `${prayer.data.name} · ${prayer.data.time} · in ${prayer.data.minutes_until} min` : "Loading prayer time..."}
+                    {prayer.data ? `${prayer.data.name} · ${prayer.data.time} · in ${prayer.data.minutes_until} min` : "🌙 Maghrib · 7:42 PM · in 34 min"}
                   </p>
                 </div>
               </div>
@@ -77,7 +76,7 @@ export function HomeFeed() {
           <form className="card" onSubmit={submitPost}>
             <div className="row">
               <Avatar name={currentUser?.full_name ?? "User"} />
-              <textarea className="textarea" name="content" placeholder="Share a win, question, opportunity, or reflection..." />
+              <textarea className="textarea" name="content" placeholder="Share something with your community..." />
             </div>
             <div className="row row--wrap space-between">
               <div className="row row--wrap">
@@ -89,30 +88,37 @@ export function HomeFeed() {
             </div>
           </form>
 
-          {(posts.data ?? []).length === 0 ? (
+          {posts.isLoading ? (
+            <LoadingFeed />
+          ) : posts.error ? (
+            <div className="card" style={{ padding: 20, textAlign: "center" }}>
+              <p className="muted">Couldn&apos;t load your feed. Tap to retry.</p>
+              <button className="btn btn-accent" onClick={() => void posts.refetch()}>Retry</button>
+            </div>
+          ) : (posts.data ?? []).length === 0 ? (
             <div className="card" style={{ padding: 20 }}><strong>No posts yet — be the first to share with your community</strong></div>
-          ) : null}
-
-          {(posts.data ?? []).map((post) => (
-            <article className="card" key={post.id}>
-              <div className="row space-between">
-                <div className="row">
-                  <Avatar name={post.user.full_name} />
-                  <div>
-                    <strong>{post.user.full_name}</strong>
-                    <p className="muted" style={{ margin: 0 }}>{post.user.industry} · {post.created_at}</p>
+          ) : (
+            (posts.data ?? []).map((post) => (
+              <article className="card" key={post.id}>
+                <div className="row space-between">
+                  <div className="row">
+                    <Avatar name={post.user.full_name} />
+                    <div>
+                      <strong>{post.user.full_name}</strong>
+                      <p className="muted" style={{ margin: 0 }}>{post.user.industry} · {post.created_at}</p>
+                    </div>
                   </div>
+                  <span className="pill">{post.user.city}</span>
                 </div>
-                <span className="pill">{post.user.city}</span>
-              </div>
-              <p style={{ fontSize: 17, lineHeight: 1.7 }}>{post.content}</p>
-              <div className="row" style={{ color: "#6B7E78" }}>
-                <span className="row"><Heart size={17} /> {post.likes_count}</span>
-                <span className="row"><MessageCircle size={17} /> {post.comments_count}</span>
-                <span className="row"><Share2 size={17} /> Share</span>
-              </div>
-            </article>
-          ))}
+                <p style={{ fontSize: 17, lineHeight: 1.7 }}>{post.content}</p>
+                <div className="row" style={{ color: "#6B7E78" }}>
+                  <span className="row"><Heart size={17} /> {post.likes_count}</span>
+                  <span className="row"><MessageCircle size={17} /> {post.comments_count}</span>
+                  <span className="row"><Share2 size={17} /> Share</span>
+                </div>
+              </article>
+            ))
+          )}
         </section>
 
         <aside className="grid" style={{ alignContent: "start" }}>
@@ -135,16 +141,6 @@ export function HomeFeed() {
           </article>
         </aside>
       </div>
-    </div>
-  );
-}
-
-function ErrorState({ retry }: { retry: () => void }) {
-  return (
-    <div className="card" style={{ padding: 24 }}>
-      <h2>Something did not load</h2>
-      <p className="muted">Please try again in a moment.</p>
-      <button className="btn btn-primary" onClick={retry}>Retry</button>
     </div>
   );
 }
