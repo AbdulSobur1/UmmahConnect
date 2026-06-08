@@ -36,7 +36,7 @@ export default async function PublicJobsPage() {
       <main className="page">
         <div className="container">
           <Link href="/" className="brand public-brand">
-            UmmahConnect
+            Ummah <span>Connect</span>
           </Link>
           <div className="screen-title">
             <div>

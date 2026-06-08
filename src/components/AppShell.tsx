@@ -47,7 +47,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <nav className="app-nav">
         <div className="container app-nav-inner">
           <Link href="/feed" className="brand">
-            Ummah Connect
+            Ummah <span>Connect</span>
           </Link>
           <div className="nav-links" aria-label="Main navigation">
             {navItems.map((item) => {

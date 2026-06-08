@@ -1,21 +1,25 @@
 import { NextRequest } from "next/server";
 import { fail, ok, serverError } from "@/lib/api/response";
-import { asRecord, stringValue } from "@/lib/api/parsing";
+import { asRecord } from "@/lib/api/parsing";
 import { createSupabaseServerClient, createSupabaseServiceClient } from "@/lib/supabase/server";
-import { initializePaystackTransaction } from "@/lib/api/paystack";
+import { checkRateLimit, getClientIp } from "@/lib/api/rate-limit";
+import { signupSchema } from "@/lib/validation";
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
   try {
+    const ipLimit = await checkRateLimit({
+      identifier: getClientIp(request),
+      action: "auth_signup",
+      limit: 5,
+      windowMs: 60 * 60 * 1000,
+    });
+    if (ipLimit.limited) return fail(ipLimit.error, 429, { message: ipLimit.message });
+
     const body = asRecord(await request.json());
-    const fullName = stringValue(body.full_name);
-    const email = stringValue(body.email);
-    const password = stringValue(body.password);
-    const industry = stringValue(body.industry);
-    const careerStage = stringValue(body.career_stage);
-    const city = stringValue(body.city);
-    const plan = stringValue(body.plan) === "pro" ? "pro" : "free";
-    if (!fullName || !email || !password || !industry || !careerStage || !city) return fail("missing_fields", 400);
+    const parsed = signupSchema.safeParse({ ...body, country: "Nigeria" });
+    if (!parsed.success) return fail("validation_failed", 400);
+    const { full_name: fullName, email, password, industry, career_stage: careerStage, city } = parsed.data;
 
     const authClient = createSupabaseServerClient();
     const { data, error } = await authClient.auth.signUp({
@@ -27,6 +31,7 @@ export async function POST(request: NextRequest) {
       },
     });
     if (error || !data.user) return fail("signup_failed", 400);
+    await authClient.auth.signOut();
 
     const supabase = createSupabaseServiceClient();
     await supabase.from("users").upsert({
@@ -45,17 +50,7 @@ export async function POST(request: NextRequest) {
       open_to_opportunities: false,
     });
 
-    if (plan === "pro") {
-      const payment = await initializePaystackTransaction({
-        email,
-        amountKobo: 9_000_00,
-        callbackUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/api/payments/verify`,
-        metadata: { user_id: data.user.id, plan: "pro", payment_type: "subscription" },
-      });
-      return ok({ user_id: data.user.id, authorization_url: payment.data?.authorization_url });
-    }
-
-    return ok({ user_id: data.user.id });
+    return ok({ user_id: data.user.id, email });
   } catch {
     return serverError();
   }

@@ -19,7 +19,7 @@ import { HalalBadge } from "@/components/HalalBadge";
 
 const stats = [
   ["1.8B", "Muslims worldwide"],
-  ["$3.2T", "Global Muslim economy"],
+  ["100M+", "Nigeria Phase 1 market"],
   ["100M+", "Muslims in Nigeria"],
   ["Phase 1", "Nigeria launch"],
 ];
@@ -108,8 +108,8 @@ const plans = [
   {
     eyebrow: "Community",
     name: "Free",
-    price: "N0",
-    suffix: "/mo",
+    price: "₦0",
+    suffix: "/month",
     text: "Always free. Built for discovery and community growth.",
     features: ["Professional profile", "Join niche communities", "Browse jobs", "Up to 30 connections", "10 messages per week", "Prayer reminders"],
     cta: "Join free",
@@ -117,8 +117,8 @@ const plans = [
   {
     eyebrow: "Professional",
     name: "Pro",
-    price: "N9,000",
-    suffix: "/mo",
+    price: "₦9,000",
+    suffix: "/month",
     text: "For serious professionals, mentors, and employers.",
     features: ["Everything in Free", "Unlimited connections", "Unlimited messaging", "Post job listings", "Full mentorship matching", "Halal job alerts"],
     cta: "Start Pro",
@@ -127,7 +127,7 @@ const plans = [
   {
     eyebrow: "Event Sponsor",
     name: "Sponsor",
-    price: "From N49,000",
+    price: "From ₦49,000",
     suffix: "/event",
     text: "A separate pay-per-event lane for organisers.",
     features: ["Featured event listing", "Sponsored feed placement", "Target by niche", "Views and click analytics", "Verified organiser badge", "Homepage banner option"],
@@ -142,7 +142,7 @@ export function Landing() {
       <nav className="landing-nav">
         <div className="container landing-nav-inner">
           <Link href="/" className="brand landing-brand">
-            Ummah<span>Connect</span>
+            Ummah <span>Connect</span>
           </Link>
           <div className="landing-nav-links" aria-label="Landing navigation">
             <Link href="#problem">Problem</Link>
@@ -379,8 +379,8 @@ export function Landing() {
         <div className="container">
           <Globe2 size={30} />
           <h2>Your career. Your faith. One home.</h2>
-          <p>Launching in Nigeria first, built for the global Ummah.</p>
-          <Link className="btn btn-accent" href="/signup">Join UmmahConnect</Link>
+          <p>Where your deen and your career are never in conflict.</p>
+          <Link className="btn btn-accent" href="/signup">Join Ummah Connect</Link>
         </div>
       </section>
     </div>

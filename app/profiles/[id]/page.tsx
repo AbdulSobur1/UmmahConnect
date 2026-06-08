@@ -54,7 +54,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
       <main className="page">
         <div className="container">
           <Link href="/" className="brand public-brand">
-            UmmahConnect
+            Ummah <span>Connect</span>
           </Link>
           <article className="card public-card">
             <h1 className="font-display">{profile.full_name}</h1>

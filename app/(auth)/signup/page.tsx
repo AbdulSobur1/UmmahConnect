@@ -3,8 +3,8 @@ import SignupForm from './signup-form';
 
 export default function SignupPage() {
   return (
-    <main className="page auth-page">
-      <Suspense fallback={<div className="card auth-card">Loading...</div>}>
+    <main className="auth-page">
+      <Suspense fallback={<div className="auth-card">Loading...</div>}>
         <SignupForm />
       </Suspense>
     </main>

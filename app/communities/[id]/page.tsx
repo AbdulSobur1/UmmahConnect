@@ -55,7 +55,7 @@ export default async function PublicCommunityPage({ params }: PageProps) {
       <main className="page">
         <div className="container">
           <Link href="/" className="brand public-brand">
-            UmmahConnect
+            Ummah <span>Connect</span>
           </Link>
           <article className="card public-card public-community-card">
             <div className="row row--center public-hero-row">
