@@ -53,7 +53,7 @@ export async function checkRateLimit(input: {
   const { identifier, action, limit, windowMs } = input;
   const now = new Date();
   const supabase = createSupabaseServiceClient();
-  const table = supabase.from("rate_limits" as never);
+  const table = supabase.from("rate_limits" as never) as any;
 
   try {
     const { data } = await table
@@ -74,7 +74,7 @@ export async function checkRateLimit(input: {
       count: nextCount,
       window_start: expired ? now.toISOString() : row?.window_start,
       expires_at: new Date((expired ? now.getTime() : windowStart.getTime()) + windowMs).toISOString(),
-    } as never);
+    });
 
     return { limited: false as const, count: nextCount };
   } catch {
@@ -85,7 +85,7 @@ export async function checkRateLimit(input: {
 export async function isCooldownActive(identifier: string, action: string) {
   const now = new Date();
   const supabase = createSupabaseServiceClient();
-  const table = supabase.from("rate_limits" as never);
+  const table = supabase.from("rate_limits" as never) as any;
   try {
     const { data } = await table
       .select("*")
