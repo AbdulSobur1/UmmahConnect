@@ -18,7 +18,6 @@ export default function SignupConfirmationPage({ searchParams }: ConfirmationPag
           <p className="auth-subtitle">We sent a link to {email}. Click it to get started.</p>
           <Link className="auth-submit" href="/login">Back to sign in</Link>
         </section>
-        <p className="auth-footer" lang="ar" dir="rtl">بسم الله الرحمن الرحيم</p>
       </div>
     </main>
   );

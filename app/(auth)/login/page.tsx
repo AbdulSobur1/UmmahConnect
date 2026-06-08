@@ -12,7 +12,6 @@ export default function LoginPage() {
             <h1>Welcome back</h1>
             <p className="auth-subtitle">Sign in to your Ummah Connect account</p>
           </div>
-          <p className="auth-footer" lang="ar" dir="rtl">بسم الله الرحمن الرحيم</p>
         </div>
       }>
         <LoginForm />

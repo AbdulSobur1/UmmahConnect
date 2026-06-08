@@ -63,7 +63,6 @@ export default function ResetPasswordPage() {
             </form>
           )}
         </section>
-        <p className="auth-footer" lang="ar" dir="rtl">بسم الله الرحمن الرحيم</p>
       </div>
     </main>
   );

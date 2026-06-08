@@ -94,7 +94,6 @@ export default function LoginForm() {
         <div className="auth-divider" />
         <p className="auth-switch">Don&apos;t have an account? <Link href="/signup">Join free</Link></p>
       </form>
-      <p className="auth-footer" lang="ar" dir="rtl">بسم الله الرحمن الرحيم</p>
     </div>
   );
 }
