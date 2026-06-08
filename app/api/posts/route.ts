@@ -27,7 +27,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const result = await requireAuthWithProfile();
-    if ('error' in result) return fail(result.error, 401);
+    if ('error' in result) return fail('unauthorized', 401);
     const body = await request.json();
     const content = typeof body?.content === 'string' && body.content.trim().length > 0
       ? body.content.trim()
