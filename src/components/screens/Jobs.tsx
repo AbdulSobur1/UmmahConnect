@@ -6,6 +6,7 @@ import { FormEvent, useMemo, useState } from "react";
 import { HalalBadge } from "@/components/HalalBadge";
 import { Modal } from "@/components/Modal";
 import { UpgradeModal } from "@/components/UpgradeModal";
+import { ErrorState, IconBox, Tag } from "@/components/ui/Common";
 import { apiGet, apiSend } from "@/lib/api/client";
 import { formatPostTime } from "@/lib/utils/time";
 import type { Job, User } from "@/lib/mock";
@@ -65,7 +66,7 @@ export function Jobs() {
   }
 
   if (jobs.isLoading) return <div className="skeleton" />;
-  if (jobs.error) return <ErrorState retry={() => void jobs.refetch()} />;
+  if (jobs.error) return <ErrorState onRetry={() => void jobs.refetch()} title="Jobs did not load" />;
 
   return (
     <div>
@@ -123,22 +124,7 @@ export function Jobs() {
               onClick={() => setSelectedJob(job)}
             >
               <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-                {/* Company logo/initials */}
-                <div style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 10,
-                  background: "rgba(94,205,181,0.1)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontWeight: 700,
-                  fontSize: 16,
-                  color: "var(--color-success)",
-                  flexShrink: 0,
-                }}>
-                  {job.company.charAt(0)}
-                </div>
+                <IconBox>{job.company.charAt(0)}</IconBox>
 
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
@@ -153,37 +139,16 @@ export function Jobs() {
                     </span>
                   </div>
 
-                  {/* Tags */}
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
                     {job.is_halal_verified && (
-                      <span style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 4,
-                        padding: "3px 8px",
-                        borderRadius: "100px",
-                        fontSize: 11,
-                        fontWeight: 700,
-                        background: "rgba(94,205,181,0.12)",
-                        color: "var(--color-success)",
-                      }}>
+                      <Tag variant="green" style={{ fontSize: 11, padding: "3px 8px" }}>
                         <ShieldCheck size={11} /> HALAL VERIFIED
-                      </span>
+                      </Tag>
                     )}
                     {job.is_remote && (
-                      <span style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 4,
-                        padding: "3px 8px",
-                        borderRadius: "100px",
-                        fontSize: 11,
-                        fontWeight: 700,
-                        background: "rgba(255,255,255,0.06)",
-                        color: "var(--color-muted-light)",
-                      }}>
+                      <Tag variant="dark" style={{ fontSize: 11, padding: "3px 8px" }}>
                         <Home size={11} /> Remote
-                      </span>
+                      </Tag>
                     )}
                   </div>
 
@@ -274,20 +239,7 @@ export function Jobs() {
       {selectedJob ? (
         <Modal title={selectedJob.title} onClose={() => setSelectedJob(null)}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
-            <div style={{
-              width: 44,
-              height: 44,
-              borderRadius: 10,
-              background: "rgba(94,205,181,0.1)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontWeight: 700,
-              fontSize: 16,
-              color: "var(--color-success)",
-            }}>
-              {selectedJob.company.charAt(0)}
-            </div>
+            <IconBox>{selectedJob.company.charAt(0)}</IconBox>
             <div>
               <strong style={{ fontSize: 16 }}>{selectedJob.company}</strong>
               <p className="muted" style={{ fontSize: 13, margin: 0 }}>
@@ -313,11 +265,4 @@ export function Jobs() {
   );
 }
 
-function ErrorState({ retry }: { retry: () => void }) {
-  return (
-    <div className="card" style={{ padding: 24 }}>
-      <h2 style={{ margin: 0, fontSize: 18 }}>Jobs did not load</h2>
-      <button className="btn btn-primary" onClick={retry} style={{ marginTop: 12 }}>Retry</button>
-    </div>
-  );
-}
+// ErrorState moved to Common.tsx

@@ -7,6 +7,7 @@ import { Avatar } from "@/components/Avatar";
 import { Modal } from "@/components/Modal";
 import { apiGet, apiSend } from "@/lib/api/client";
 import { formatPostTime } from "@/lib/utils/time";
+import { ErrorState, InfoCard, ProgressBar, Tag } from "@/components/ui/Common";
 import type { Post, User } from "@/lib/mock";
 
 export function Profile() {
@@ -29,7 +30,7 @@ export function Profile() {
   });
 
   if (me.isLoading) return <div className="skeleton" />;
-  if (me.error || !me.data) return <ErrorState retry={() => void me.refetch()} />;
+  if (me.error || !me.data) return <ErrorState onRetry={() => void me.refetch()} title="Profile did not load" />;
   const currentUser = me.data;
 
   function submit(event: FormEvent<HTMLFormElement>) {
@@ -173,18 +174,7 @@ export function Profile() {
         {currentUser.skills.length > 0 && (
           <div className="skill-scroll" style={{ marginTop: 10, display: "flex", gap: 6, overflowX: "auto", paddingBottom: 4 }}>
             {currentUser.skills.map((skill) => (
-              <span key={skill} style={{
-                display: "inline-flex",
-                alignItems: "center",
-                padding: "4px 10px",
-                borderRadius: "100px",
-                fontSize: 12,
-                fontWeight: 600,
-                whiteSpace: "nowrap",
-                background: "rgba(94,205,181,0.1)",
-                color: "var(--color-success)",
-                border: "1px solid rgba(94,205,181,0.16)",
-              }}>{skill}</span>
+              <Tag key={skill}>{skill}</Tag>
             ))}
           </div>
         )}
@@ -263,58 +253,35 @@ export function Profile() {
           )}
         </div>
 
-        {/* Weekly messaging */}
-        <div className="card" style={{ marginTop: 14, padding: "var(--card-padding)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <MessageCircle size={16} color="var(--color-primary)" />
-            <strong style={{ fontSize: 14 }}>Weekly messaging counter</strong>
-          </div>
-          <p style={{ fontSize: 13, color: "var(--color-muted-light)", margin: "6px 0 0", lineHeight: 1.5 }}>
-            Free users can send and receive messages from anyone, including Pro users. Sending is limited to 10 messages per week.
-          </p>
-          <div style={{ height: 8, borderRadius: 999, background: "rgba(26,107,92,0.14)", overflow: "hidden", marginTop: 10 }}>
-            <div style={{
-              width: `${Math.min(((weekly.data?.count ?? 0) / 10) * 100, 100)}%`,
-              height: "100%",
-              background: (weekly.data?.count ?? 0) >= 10 ? "#f87171" : "var(--color-primary)",
-              borderRadius: 999,
-              transition: "width 300ms ease"
-            }} />
-          </div>
-          <p style={{ fontSize: 12, color: "var(--color-muted-light)", margin: "6px 0 0" }}>
-            {weekly.data?.count ?? 0} of 10 messages used this week
-          </p>
-        </div>
+        <InfoCard
+          icon={<MessageCircle size={16} color="var(--color-primary)" />}
+          title="Weekly messaging counter"
+          description="Free users can send and receive messages from anyone, including Pro users. Sending is limited to 10 messages per week."
+          extra={
+            <>
+              <ProgressBar value={weekly.data?.count ?? 0} height={8} />
+              <p style={{ fontSize: 12, color: "var(--color-muted-light)", margin: "6px 0 0" }}>
+                {weekly.data?.count ?? 0} of 10 messages used this week
+              </p>
+            </>
+          }
+        />
 
-        {/* Opportunities card */}
-        <div className="card" style={{ marginTop: 14, padding: "var(--card-padding)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <Mail size={16} color="var(--color-primary)" />
-            <strong style={{ fontSize: 14 }}>Opportunities</strong>
-          </div>
-          <p style={{ fontSize: 13, color: "var(--color-muted-light)", margin: "6px 0 0" }}>
-            {currentUser.open_to_opportunities ? "Open to relevant roles and collaborations." : "Not currently open to opportunities."}
-          </p>
-          <div style={{ marginTop: 8, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <span style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              padding: "5px 10px",
-              borderRadius: "100px",
-              fontSize: 12,
-              fontWeight: 600,
-              background: currentUser.open_to_opportunities ? "rgba(94,205,181,0.12)" : "rgba(255,255,255,0.05)",
-              color: currentUser.open_to_opportunities ? "var(--color-success)" : "var(--color-muted-light)",
-              border: "1px solid rgba(94,205,181,0.16)",
-            }}>
-              {currentUser.open_to_opportunities ? "Open to Opportunities" : "Not open to opportunities"}
-            </span>
-            <span style={{ fontSize: 12, color: "var(--color-muted-light)" }}>
-              Photo visible: {currentUser.show_photo ? "Yes" : "No"}
-            </span>
-          </div>
-        </div>
+        <InfoCard
+          icon={<Mail size={16} color="var(--color-primary)" />}
+          title="Opportunities"
+          description={currentUser.open_to_opportunities ? "Open to relevant roles and collaborations." : "Not currently open to opportunities."}
+          extra={
+            <div style={{ marginTop: 8, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <Tag variant={currentUser.open_to_opportunities ? "green" : "dark"}>
+                {currentUser.open_to_opportunities ? "Open to Opportunities" : "Not open to opportunities"}
+              </Tag>
+              <span style={{ fontSize: 12, color: "var(--color-muted-light)" }}>
+                Photo visible: {currentUser.show_photo ? "Yes" : "No"}
+              </span>
+            </div>
+          }
+        />
       </div>
 
       {editing ? (
@@ -333,11 +300,4 @@ export function Profile() {
   );
 }
 
-function ErrorState({ retry }: { retry: () => void }) {
-  return (
-    <div className="card" style={{ padding: 24 }}>
-      <h2 style={{ margin: 0, fontSize: 18 }}>Profile did not load</h2>
-      <button className="btn btn-primary" onClick={retry} style={{ marginTop: 12 }}>Retry</button>
-    </div>
-  );
-}
+// ErrorState moved to Common.tsx

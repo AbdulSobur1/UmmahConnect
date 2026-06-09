@@ -5,6 +5,7 @@ import { Search, UserPlus, Globe } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Avatar } from "@/components/Avatar";
 import { HalalBadge } from "@/components/HalalBadge";
+import { ErrorState, IconBox } from "@/components/ui/Common";
 import { apiGet, apiSend } from "@/lib/api/client";
 import type { Community, EventListing, Job, User } from "@/lib/mock";
 
@@ -43,7 +44,7 @@ export function Discover() {
   const upcomingEvents = (events.data ?? []).slice(0, 2);
 
   if (communities.isLoading) return <div className="skeleton" />;
-  if (communities.error) return <ErrorState retry={() => void communities.refetch()} />;
+  if (communities.error) return <ErrorState onRetry={() => void communities.refetch()} title="Discover did not load" />;
 
   function toggleJoin(communityId: string) {
     setJoinedCommunities((prev) => {
@@ -137,21 +138,7 @@ export function Discover() {
                   gap: 10,
                 }}
               >
-                <div style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 12,
-                  background: "rgba(94,205,181,0.1)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontWeight: 700,
-                  fontSize: 16,
-                  color: "var(--color-success)",
-                  flexShrink: 0,
-                }}>
-                  {community.icon || community.name.charAt(0)}
-                </div>
+                <IconBox>{community.icon || community.name.charAt(0)}</IconBox>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <strong style={{ fontSize: 15 }}>{community.name}</strong>
                   {community.description && (
@@ -243,11 +230,4 @@ export function Discover() {
   );
 }
 
-function ErrorState({ retry }: { retry: () => void }) {
-  return (
-    <div className="card" style={{ padding: 24 }}>
-      <h2 style={{ margin: 0, fontSize: 18 }}>Discover did not load</h2>
-      <button className="btn btn-primary" onClick={retry} style={{ marginTop: 12 }}>Retry</button>
-    </div>
-  );
-}
+// ErrorState moved to Common.tsx

@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { FormEvent, useState } from "react";
 import { Avatar } from "@/components/Avatar";
+import { ProgressBar, Tag } from "@/components/ui/Common";
 import { apiGet, apiSend } from "@/lib/api/client";
 import { formatPostTime } from "@/lib/utils/time";
 import type { Community, EventListing, Post, User } from "@/lib/mock";
@@ -247,28 +248,19 @@ export function HomeFeed() {
               <strong style={{ fontSize: 14, marginBottom: 10, display: "block" }}>Community quick-links</strong>
               <div className="community-scroll" style={{ display: "flex", gap: 6, overflowX: "auto", marginTop: 6 }}>
                 {(communities.data ?? []).slice(0, 6).map((community) => (
-                  <span className="pill" key={community.id} style={{ fontSize: 12, padding: "4px 10px", whiteSpace: "nowrap" }}>
-                    {community.name}
-                  </span>
+                  <Tag key={community.id}>{community.name}</Tag>
                 ))}
               </div>
             </article>
           ) : null}
 
-          {/* Weekly messaging */}
           <article className="card" style={{ padding: 14 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <MessageSquare size={15} color="var(--color-muted-light)" />
               <strong style={{ fontSize: 13 }}>Weekly messaging</strong>
             </div>
-            <div style={{ height: 6, borderRadius: 999, background: "rgba(26,107,92,0.14)", overflow: "hidden", marginTop: 8 }}>
-              <div style={{
-                width: `${Math.min((weeklyCount / 10) * 100, 100)}%`,
-                height: "100%",
-                background: weeklyCount >= 10 ? "#f87171" : "var(--color-primary)",
-                borderRadius: 999,
-                transition: "width 300ms ease",
-              }} />
+            <div style={{ marginTop: 8 }}>
+              <ProgressBar value={weeklyCount} height={6} />
             </div>
             <p style={{ margin: "4px 0 0", fontSize: 12, color: "var(--color-muted-light)" }}>
               {weeklyCount} of 10 messages used this week
