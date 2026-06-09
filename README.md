@@ -4,7 +4,9 @@ A professional career network for Muslim professionals in Nigeria.
 
 ## Stack
 - Next.js 14 App Router
-- Supabase (Postgres, Auth, Storage, Realtime)
+- Neon (Postgres)
+- Auth.js (authentication)
+- Drizzle ORM
 - React Query
 - TypeScript (strict)
 - Tailwind CSS
@@ -23,7 +25,8 @@ See `.env.example` for all required variables with descriptions.
 ## Key Conventions
 - All API routes use `withHandler` from `src/lib/api/helpers.ts`
 - All inputs validated with Zod schemas from `src/lib/validation.ts`
-- Never use `supabase.auth.getSession()` alone — always `getUser()`
+- Authentication via `@/lib/auth` — use `auth()` server-side, `useSession()` client-side
+- All database queries use Drizzle ORM via `@/lib/db`
 - Public routes: `/profiles`, `/posts`, `/communities`, `/jobs`, `/events`
 - Protected routes: `/feed`, `/messages`, `/notifications`, `/settings`, `/mentorship`
 
