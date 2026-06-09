@@ -22,6 +22,7 @@ export default function LoginForm() {
   const [formError, setFormError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const signupSuccess = searchParams.get("signup") === "success";
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -63,6 +64,12 @@ export default function LoginForm() {
         <Link href="/" className="auth-logo">Ummah <span>Connect</span></Link>
         <h1>Welcome back</h1>
         <p className="auth-subtitle">Sign in to your Ummah Connect account</p>
+
+        {signupSuccess ? (
+          <div className="auth-success-banner">
+            Account created successfully! Sign in below to get started.
+          </div>
+        ) : null}
 
         <label className="auth-field">
           <span>Email</span>

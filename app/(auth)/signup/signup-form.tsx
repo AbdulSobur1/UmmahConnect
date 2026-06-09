@@ -91,7 +91,7 @@ export default function SignupForm() {
       return;
     }
 
-    router.push(`/signup/confirmation?email=${encodeURIComponent(json.data?.email ?? String(body.email ?? ""))}`);
+    router.push(`/login?signup=success`);
   }
 
   return (
