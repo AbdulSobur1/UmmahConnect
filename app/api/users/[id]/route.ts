@@ -34,6 +34,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       skills: body.skills ?? undefined,
       showPhoto: body.show_photo ?? undefined,
       openToOpportunities: body.open_to_opportunities ?? undefined,
+      avatarUrl: body.avatar_url ?? undefined,
     }).where(eq(users.id, params.id)).returning();
     if (!updated) return fail('update_failed', 400);
     return ok(userDto(updated as any));

@@ -1,8 +1,8 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Edit3, Mail, MapPin, MessageCircle } from "lucide-react";
-import { FormEvent, useState } from "react";
+import { Camera, Edit3, Mail, MapPin, MessageCircle } from "lucide-react";
+import { FormEvent, useRef, useState } from "react";
 import { Avatar } from "@/components/Avatar";
 import { Modal } from "@/components/Modal";
 import { apiGet, apiSend } from "@/lib/api/client";
@@ -10,6 +10,8 @@ import type { Post, User } from "@/lib/mock";
 
 export function Profile() {
   const [editing, setEditing] = useState(false);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
   const me = useQuery({ queryKey: ["me"], queryFn: () => apiGet<User>("/api/users/me") });
   const posts = useQuery({ queryKey: ["posts"], queryFn: () => apiGet<Post[]>("/api/posts") });
@@ -36,13 +38,43 @@ export function Profile() {
     });
   }
 
+  function handleAvatarChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target?.result as string;
+      setAvatarPreview(dataUrl);
+      update.mutate({ avatar_url: dataUrl });
+    };
+    reader.readAsDataURL(file);
+  }
+
+  const displayAvatar = avatarPreview || currentUser.avatar_url;
+
   return (
     <div>
       <div className="card" style={{ overflow: "hidden" }}>
         <div style={{ minHeight: 190, background: "linear-gradient(120deg, #0D1B1E, #1A6B5C 62%, #C9A84C)" }} />
         <div style={{ padding: 24, marginTop: -62 }}>
-          <div style={{ borderRadius: "999px", display: "inline-flex", border: "3px solid #0D1B1E", boxShadow: "0 0 0 3px rgba(201,168,76,0.2)" }}>
-            <Avatar name={currentUser.full_name} size={116} />
+          <div style={{ position: "relative", display: "inline-flex" }}>
+            <div style={{ borderRadius: "999px", display: "inline-flex", border: "3px solid #0D1B1E", boxShadow: "0 0 0 3px rgba(201,168,76,0.2)" }}>
+              <Avatar name={currentUser.full_name} size={116} src={displayAvatar} />
+            </div>
+            <button
+              className="avatar-upload-btn"
+              onClick={() => fileInputRef.current?.click()}
+              aria-label="Upload profile picture"
+            >
+              <Camera size={18} />
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              style={{ display: "none" }}
+              onChange={handleAvatarChange}
+            />
           </div>
           <div className="row space-between" style={{ alignItems: "flex-start", flexWrap: "wrap", marginTop: 14 }}>
             <div>

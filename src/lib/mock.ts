@@ -13,6 +13,7 @@ export type User = {
   plan: Plan;
   show_photo: boolean;
   open_to_opportunities: boolean;
+  avatar_url: string | null;
   created_at: string;
 };
 
@@ -116,6 +117,7 @@ export const users: User[] = [
     plan: "free",
     show_photo: true,
     open_to_opportunities: true,
+    avatar_url: null,
     created_at: "2026-05-01T09:00:00.000Z",
   },
   {
@@ -131,6 +133,7 @@ export const users: User[] = [
     plan: "pro",
     show_photo: true,
     open_to_opportunities: false,
+    avatar_url: null,
     created_at: "2026-04-22T12:00:00.000Z",
   },
   {
@@ -146,6 +149,7 @@ export const users: User[] = [
     plan: "free",
     show_photo: true,
     open_to_opportunities: true,
+    avatar_url: null,
     created_at: "2026-04-18T16:30:00.000Z",
   },
   {
@@ -161,6 +165,7 @@ export const users: User[] = [
     plan: "pro",
     show_photo: true,
     open_to_opportunities: false,
+    avatar_url: null,
     created_at: "2026-03-29T08:00:00.000Z",
   },
   {
@@ -176,6 +181,7 @@ export const users: User[] = [
     plan: "sponsor",
     show_photo: true,
     open_to_opportunities: true,
+    avatar_url: null,
     created_at: "2026-03-12T10:15:00.000Z",
   },
 ];

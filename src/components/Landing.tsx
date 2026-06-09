@@ -106,6 +106,9 @@ const niches = [
 export function Landing() {
   return (
     <div className="landing">
+      <header className="app-header-bismillah">
+        <span lang="ar" dir="rtl">بسم الله الرحمن الرحيم</span>
+      </header>
       <nav className="landing-nav">
         <div className="container landing-nav-inner">
           <Link href="/" className="brand landing-brand">

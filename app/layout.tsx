@@ -17,7 +17,8 @@ const dmSans = DM_Sans({
 
 export const metadata: Metadata = {
   title: "Ummah Connect - Where your deen and your career are never in conflict.",
-  description: "Professional networking for Muslim professionals and creatives. Launching in Nigeria.",
+  description: "The global professional network for Muslim professionals and creatives. Connect with people in your niche, find halal opportunities, and grow your career — guided by your values.",
+  keywords: ["Muslim professional network", "halal careers", "Islamic networking", "Muslim community", "professional networking"],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -25,9 +26,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${playfair.variable} ${dmSans.variable}`}>
       <body>
         <div className="app-shell">
-          <header className="app-header-bismillah">
-            <span lang="ar" dir="rtl">بسم الله الرحمن الرحيم</span>
-          </header>
           <Providers>
             {children}
           </Providers>

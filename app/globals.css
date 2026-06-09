@@ -290,6 +290,30 @@ button { cursor: pointer; }
 .toggle-switch input:checked + .toggle-slider::before { transform:translateX(20px); }
 .toggle-switch input:disabled + .toggle-slider { opacity:0.6; cursor:not-allowed; }
 
+/* Avatar upload button */
+.avatar-upload-btn { position:absolute; bottom:4px; right:4px; width:36px; height:36px; border-radius:50%; background:var(--color-primary); color:#fff; border:2px solid #0D1B1E; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 160ms ease; z-index:2; }
+.avatar-upload-btn:hover { background:#155a4d; transform:scale(1.08); }
+
+/* Avatar dropdown menu */
+.avatar-dropdown-btn { display:flex; align-items:center; gap:6px; border:0; padding:2px 6px; border-radius:8px; background:transparent; color:rgba(255,255,255,0.45); cursor:pointer; }
+.avatar-dropdown-btn:hover { background:rgba(255,255,255,0.04); }
+.avatar-dropdown-menu { position:absolute; top:calc(100% + 8px); right:0; background:#132420; border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:6px; min-width:180px; z-index:30; box-shadow:0 12px 40px rgba(0,0,0,0.4); }
+.avatar-dropdown-item { display:flex; align-items:center; gap:10px; width:100%; padding:10px 12px; border-radius:8px; color:rgba(255,255,255,0.8); font-size:14px; font-weight:600; text-decoration:none; border:0; background:transparent; cursor:pointer; }
+.avatar-dropdown-item:hover { background:rgba(255,255,255,0.06); }
+
+/* Bottom navigation (mobile) */
+.bottom-nav { display:none; }
+
+/* More sheet (mobile) */
+.more-sheet-backdrop { display:none; }
+
+/* Desktop-only */
+.desktop-only { display:flex; }
+.app-nav--desktop { display:block; }
+
+/* Global scale metadata */
+html[lang] { word-break:break-word; }
+
 /* Responsive */
 @media (max-width:860px) {
   .two-col, .three-col { grid-template-columns:1fr }
@@ -310,6 +334,37 @@ button { cursor: pointer; }
   .niche-grid { grid-template-columns:repeat(2, minmax(0,1fr)); }
 }
 
+/* Mobile-first responsive */
+@media (max-width:768px) {
+  /* Hide desktop nav on mobile */
+  .app-nav--desktop { display:none; }
+  .desktop-only { display:none; }
+  
+  /* Bottom nav bar */
+  .bottom-nav { display:flex; position:fixed; bottom:0; left:0; right:0; z-index:40; background:rgba(13,27,30,0.96); backdrop-filter:blur(12px); border-top:1px solid rgba(255,255,255,0.06); padding:6px 0; justify-content:space-around; align-items:center; }
+  .bottom-nav-item { display:flex; flex-direction:column; align-items:center; gap:2px; padding:6px 8px 4px; border-radius:8px; color:rgba(255,255,255,0.38); font-size:10px; font-weight:600; text-decoration:none; min-width:56px; border:0; background:transparent; cursor:pointer; transition:color 160ms ease; position:relative; }
+  .bottom-nav-item--active { color:var(--color-success); }
+  .bottom-nav-item svg { display:block; }
+  .bottom-nav-badge { position:absolute; top:2px; right:8px; width:8px; height:8px; border-radius:50%; background:#f87171; }
+  
+  /* Bottom sheet for More tab */
+  .more-sheet-backdrop { display:block; position:fixed; inset:0; z-index:50; background:rgba(0,0,0,0.5); }
+  .more-sheet { position:fixed; bottom:0; left:0; right:0; z-index:51; background:#132420; border-radius:20px 20px 0 0; padding:20px 16px 32px; max-height:60vh; overflow-y:auto; }
+  .more-sheet-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.06); }
+  .more-sheet-header strong { font-size:18px; color:#fff; }
+  .more-sheet-close { background:transparent; border:0; color:rgba(255,255,255,0.5); cursor:pointer; padding:4px; border-radius:8px; }
+  .more-sheet-close:hover { background:rgba(255,255,255,0.06); }
+  .more-sheet-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .more-sheet-item { display:flex; flex-direction:column; align-items:center; gap:6px; padding:16px 12px; border-radius:12px; color:rgba(255,255,255,0.7); font-size:13px; font-weight:600; text-decoration:none; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.04); transition:all 120ms ease; position:relative; }
+  .more-sheet-item:active { background:rgba(255,255,255,0.06); }
+  .more-sheet-item--active { color:var(--color-success); border-color:rgba(94,205,181,0.2); }
+  .more-sheet-badge { position:absolute; top:8px; right:8px; background:#f87171; color:#fff; font-size:10px; font-weight:700; padding:2px 6px; border-radius:999px; }
+  
+  /* Adjust main content padding for bottom nav */
+  .app-main { padding-bottom: 80px; }
+  .app-nav-inner { min-height:56px; flex-direction:row; }
+}
+
 @media (max-width:560px) {
   .container { width:min(100% - 22px, 1120px) }
   .section { padding:48px 0 }
@@ -324,4 +379,5 @@ button { cursor: pointer; }
   .landing-stat { padding:26px 14px; }
   .landing-stat strong { font-size:32px; }
   .pricing-card > strong { font-size:28px; }
+  .more-sheet-grid { grid-template-columns:1fr; }
 }

@@ -4,10 +4,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Bell, Briefcase, Compass, Home, MessageCircle, Settings, Sparkles, UserRound, ChevronDown, LogOut } from "lucide-react";
+import {
+  Bell, Briefcase, Compass, Home, MessageCircle, Settings,
+  Sparkles, UserRound, ChevronDown, LogOut, Grid3X3, X,
+} from "lucide-react";
 import { Avatar } from "@/components/Avatar";
 import { apiGet } from "@/lib/api/client";
 import type { Notification, User } from "@/lib/mock";
+
 const navItems = [
   { href: "/feed", label: "Feed", icon: Home },
   { href: "/profile", label: "Profile", icon: UserRound },
@@ -18,9 +22,24 @@ const navItems = [
   { href: "/notifications", label: "Alerts", icon: Bell },
 ];
 
+const bottomTabs = [
+  { href: "/feed", label: "Feed", icon: Home },
+  { href: "/discover", label: "Discover", icon: Compass },
+  { href: "/messages", label: "Messages", icon: MessageCircle },
+  { href: "/profile", label: "Profile", icon: UserRound },
+];
+
+const moreItems = [
+  { href: "/mentorship", label: "Mentorship", icon: Sparkles },
+  { href: "/jobs", label: "Jobs", icon: Briefcase },
+  { href: "/notifications", label: "Alerts", icon: Bell },
+  { href: "/settings", label: "Settings", icon: Settings },
+];
+
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showMoreSheet, setShowMoreSheet] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { data: currentUser } = useQuery({ queryKey: ["me"], queryFn: () => apiGet<User>("/api/users/me") });
   const { data: notifications = [] } = useQuery({ queryKey: ["notifications"], queryFn: () => apiGet<Notification[]>("/api/notifications"), enabled: Boolean(currentUser) });
@@ -38,7 +57,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="app-shell">
-      <nav className="app-nav">
+      {/* Desktop top nav */}
+      <nav className="app-nav app-nav--desktop">
         <div className="container app-nav-inner">
           <Link href="/feed" className="brand">
             Ummah <span>Connect</span>
@@ -46,7 +66,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="nav-links" aria-label="Main navigation">
             {navItems.map((item) => {
               const Icon = item.icon;
-              const active = pathname === item.href || (pathname === "/" && item.href === "/feed");
+              const active = pathname === item.href;
               return (
                 <Link key={item.href} href={item.href} className={`nav-link ${active ? "nav-link-active" : ""}`}>
                   <span className="row" style={{ gap: 6 }}>
@@ -58,18 +78,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               );
             })}
           </div>
-          <div className="row" ref={dropdownRef} style={{ position: "relative" }}>
+          {/* Avatar dropdown — desktop */}
+          <div className="row desktop-only" ref={dropdownRef} style={{ position: "relative" }}>
             <Link href="/settings" className="pill" style={{ cursor: "pointer", textDecoration: "none" }}>{currentUser?.plan === "free" ? "Free" : currentUser?.plan ?? "..."}</Link>
-            <button className="btn-ghost" style={{ display: "flex", alignItems: "center", gap: 6, border: 0, padding: "2px 6px", borderRadius: 8 }} onClick={() => setShowDropdown((v) => !v)}>
-              <Avatar name={currentUser?.full_name ?? "Ummah Connect"} size={34} />
-              <ChevronDown size={14} style={{ color: "rgba(255,255,255,0.45)" }} />
+            <button className="avatar-dropdown-btn" onClick={() => setShowDropdown((v) => !v)} aria-label="User menu">
+              <Avatar name={currentUser?.full_name ?? "U"} size={32} />
+              <ChevronDown size={14} />
             </button>
             {showDropdown ? (
-              <div style={{ position: "absolute", top: "100%", right: 0, marginTop: 8, background: "#132420", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: 6, minWidth: 180, zIndex: 30, boxShadow: "0 12px 40px rgba(0,0,0,0.4)" }}>
-                <Link href="/settings" className="row" style={{ padding: "10px 12px", borderRadius: 8, color: "rgba(255,255,255,0.8)", fontSize: 14, fontWeight: 600, textDecoration: "none" }} onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.06)"} onMouseLeave={(e) => e.currentTarget.style.background = "transparent"} onClick={() => setShowDropdown(false)}>
+              <div className="avatar-dropdown-menu">
+                <Link href="/settings" className="avatar-dropdown-item" onClick={() => setShowDropdown(false)}>
                   <Settings size={16} /> Settings
                 </Link>
-                <button className="row" style={{ width: "100%", padding: "10px 12px", borderRadius: 8, color: "rgba(255,255,255,0.6)", fontSize: 14, fontWeight: 600, background: "transparent", border: 0, cursor: "pointer" }} onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.06)"} onMouseLeave={(e) => e.currentTarget.style.background = "transparent"} onClick={() => { window.location.href = "/api/auth/logout"; }}>
+                <button className="avatar-dropdown-item" onClick={() => { window.location.href = "/api/auth/logout"; }}>
                   <LogOut size={16} /> Sign out
                 </button>
               </div>
@@ -77,7 +98,53 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       </nav>
+
+      {/* Main content */}
       <main className="container app-main">{children}</main>
+
+      {/* Mobile bottom tab bar */}
+      <nav className="bottom-nav">
+        {bottomTabs.map((tab) => {
+          const Icon = tab.icon;
+          const isActive = pathname === tab.href || (tab.href === "/feed" && pathname === "/");
+          return (
+            <Link key={tab.href} href={tab.href} className={`bottom-nav-item ${isActive ? "bottom-nav-item--active" : ""}`}>
+              <Icon size={22} />
+              <span>{tab.label}</span>
+              {tab.href === "/messages" ? <span className="bottom-nav-badge" /> : null}
+            </Link>
+          );
+        })}
+        <button className={`bottom-nav-item ${showMoreSheet ? "bottom-nav-item--active" : ""}`} onClick={() => setShowMoreSheet(true)}>
+          <Grid3X3 size={22} />
+          <span>More</span>
+        </button>
+      </nav>
+
+      {/* More bottom sheet */}
+      {showMoreSheet ? (
+        <div className="more-sheet-backdrop" onClick={() => setShowMoreSheet(false)}>
+          <div className="more-sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="more-sheet-header">
+              <strong>More</strong>
+              <button className="more-sheet-close" onClick={() => setShowMoreSheet(false)}><X size={20} /></button>
+            </div>
+            <div className="more-sheet-grid">
+              {moreItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = pathname === item.href;
+                return (
+                  <Link key={item.href} href={item.href} className={`more-sheet-item ${isActive ? "more-sheet-item--active" : ""}`} onClick={() => setShowMoreSheet(false)}>
+                    <Icon size={22} />
+                    <span>{item.label}</span>
+                    {item.href === "/notifications" && unreadCount > 0 ? <span className="more-sheet-badge">{unreadCount}</span> : null}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
