@@ -41,11 +41,13 @@ export function Profile() {
       <div className="card" style={{ overflow: "hidden" }}>
         <div style={{ minHeight: 190, background: "linear-gradient(120deg, #0D1B1E, #1A6B5C 62%, #C9A84C)" }} />
         <div style={{ padding: 24, marginTop: -62 }}>
-          <Avatar name={currentUser.full_name} size={116} />
+          <div style={{ borderRadius: "999px", display: "inline-flex", border: "3px solid #0D1B1E", boxShadow: "0 0 0 3px rgba(201,168,76,0.2)" }}>
+            <Avatar name={currentUser.full_name} size={116} />
+          </div>
           <div className="row space-between" style={{ alignItems: "flex-start", flexWrap: "wrap", marginTop: 14 }}>
             <div>
               <h1 className="font-display" style={{ margin: 0, fontSize: 48 }}>{currentUser.full_name}</h1>
-              <p className="muted">{currentUser.industry} · {currentUser.career_stage}</p>
+              <div className="row" style={{ flexWrap: "wrap", gap: 8 }}>{[currentUser.career_stage, currentUser.industry].filter(Boolean).map((tag) => <span className="pill" key={tag}>{tag}</span>)}</div>
               <p className="row muted"><MapPin size={16} /> {currentUser.city}, {currentUser.country}</p>
             </div>
             <button className="btn btn-primary" onClick={() => setEditing(true)}><Edit3 size={17} /> Edit profile</button>
@@ -56,7 +58,11 @@ export function Profile() {
       </div>
 
       <div className="grid three-col" style={{ marginTop: 18 }}>
-        {[["Connections", "248"], ["Communities", "5"], ["Posts", String(posts.data?.filter((post) => post.user_id === currentUser.id).length ?? 0)]].map(([label, value]) => (
+        {[
+          { label: "Connections", value: "0" },
+          { label: "Communities", value: "5" },
+          { label: "Posts", value: String(posts.data?.filter((post) => post.user_id === currentUser.id).length ?? 0) },
+        ].map(({ label, value }) => (
           <article className="card" style={{ padding: 20 }} key={label}><p className="muted" style={{ margin: 0 }}>{label}</p><strong style={{ fontSize: 30 }}>{value}</strong></article>
         ))}
       </div>
@@ -65,16 +71,22 @@ export function Profile() {
         <article className="card" style={{ padding: 20 }}>
           <div className="row"><MessageCircle color="#1A6B5C" /><strong>Weekly messaging counter</strong></div>
           <p className="muted">Free users can send and receive messages from anyone, including Pro users. Sending is limited to 10 messages per week.</p>
-          <div style={{ height: 10, borderRadius: 999, background: "rgba(26,107,92,0.14)", overflow: "hidden" }}>
-            <div style={{ width: `${((weekly.data?.count ?? 0) / 10) * 100}%`, height: "100%", background: "#1A6B5C" }} />
+          <div style={{ height: 10, borderRadius: 999, background: "rgba(26,107,92,0.14)", overflow: "hidden", marginTop: 12 }}>
+            <div style={{ width: `${Math.min(((weekly.data?.count ?? 0) / 10) * 100, 100)}%`, height: "100%", background: (weekly.data?.count ?? 0) >= 10 ? "#f87171" : "#1A6B5C", borderRadius: 999, transition: "width 300ms ease" }} />
           </div>
           <p>{weekly.data?.count ?? 0} of 10 messages used this week</p>
         </article>
         <article className="card" style={{ padding: 20 }}>
           <div className="row"><Mail color="#1A6B5C" /><strong>Opportunities</strong></div>
           <p>{currentUser.open_to_opportunities ? "Open to relevant roles and collaborations." : "Not currently open to opportunities."}</p>
-          {currentUser.open_to_opportunities ? <span className="pill pill--active">Open to Opportunities</span> : null}
-          <span className="pill">{currentUser.show_photo ? "Photo visible" : "Photo hidden"}</span>
+          {currentUser.open_to_opportunities ? <span className="pill pill--active">Open to Opportunities</span> : <span className="pill">Not open to opportunities</span>}
+          <div className="row space-between" style={{ marginTop: 8 }}>
+            <span style={{ fontSize: 14, color: "rgba(255,255,255,0.7)" }}>Photo visible</span>
+            <label className="toggle-switch">
+              <input type="checkbox" defaultChecked={currentUser.show_photo} disabled />
+              <span className="toggle-slider" />
+            </label>
+          </div>
         </article>
       </div>
 

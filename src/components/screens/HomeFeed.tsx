@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CalendarDays, Heart, MessageCircle, Send, Share2, Star, Sunrise } from "lucide-react";
+import { CalendarDays, Heart, MessageCircle, Send, Share2, Star, Sunrise, MessageSquare } from "lucide-react";
 import { FormEvent } from "react";
 import { Avatar } from "@/components/Avatar";
 import { apiGet, apiSend } from "@/lib/api/client";
@@ -53,7 +53,6 @@ export function HomeFeed() {
           <h1>Home Feed</h1>
           <p className="muted">{greeting}</p>
         </div>
-        <span className="pill">{weeklyCount} of 10 messages used this week</span>
       </div>
 
       <div className="grid two-col">
@@ -76,7 +75,7 @@ export function HomeFeed() {
           <form className="card" onSubmit={submitPost}>
             <div className="row">
               <Avatar name={currentUser?.full_name ?? "User"} />
-              <textarea className="textarea" name="content" placeholder="Share something with your community..." />
+              <textarea className="textarea" name="content" placeholder="Share something with your community..." rows={3} style={{ resize: "none" }} />
             </div>
             <div className="row row--wrap space-between">
               <div className="row row--wrap">
@@ -96,7 +95,12 @@ export function HomeFeed() {
               <button className="btn btn-accent" onClick={() => void posts.refetch()}>Retry</button>
             </div>
           ) : (posts.data ?? []).length === 0 ? (
-            <div className="card" style={{ padding: 20 }}><strong>No posts yet — be the first to share with your community</strong></div>
+            <div className="card" style={{ padding: 32, textAlign: "center" }}>
+              <div style={{ fontSize: 48, marginBottom: 12 }}>🌙</div>
+              <strong style={{ fontSize: 20 }}>No posts yet</strong>
+              <p className="muted" style={{ marginTop: 8, marginBottom: 20 }}>Your community feed is quiet. Be the first to share something meaningful — a reflection, a question, or a win.</p>
+              <button className="btn btn-accent" onClick={() => document.querySelector<HTMLTextAreaElement>('textarea[name="content"]')?.focus()}>Write your first post</button>
+            </div>
           ) : (
             (posts.data ?? []).map((post) => (
               <article className="card" key={post.id}>
@@ -131,13 +135,26 @@ export function HomeFeed() {
             </article>
           ) : null}
 
-          <article className="card">
-            <div className="row space-between"><strong>Community quick-links</strong></div>
-            <div className="community-scroll" style={{ marginTop: 14 }}>
-              {(communities.data ?? []).slice(0, 6).map((community) => (
-                <span className="pill" key={community.id}>{community.name}</span>
-              ))}
+          {(communities.data ?? []).length > 0 ? (
+            <article className="card">
+              <div className="row space-between"><strong>Community quick-links</strong></div>
+              <div className="community-scroll" style={{ marginTop: 14 }}>
+                {(communities.data ?? []).slice(0, 6).map((community) => (
+                  <span className="pill" key={community.id}>{community.name}</span>
+                ))}
+              </div>
+            </article>
+          ) : null}
+
+          <article className="card" style={{ padding: 16 }}>
+            <div className="row">
+              <MessageSquare size={18} color="#6B7E78" />
+              <strong style={{ fontSize: 14 }}>Weekly messaging</strong>
             </div>
+            <div style={{ height: 6, borderRadius: 999, background: "rgba(26,107,92,0.14)", overflow: "hidden", marginTop: 10 }}>
+              <div style={{ width: `${Math.min((weeklyCount / 10) * 100, 100)}%`, height: "100%", background: weeklyCount >= 10 ? "#f87171" : "#1A6B5C", borderRadius: 999, transition: "width 300ms ease" }} />
+            </div>
+            <p style={{ margin: "6px 0 0", fontSize: 13, color: "#6B7E78" }}>{weeklyCount} of 10 messages used this week</p>
           </article>
         </aside>
       </div>
