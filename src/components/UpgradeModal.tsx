@@ -24,19 +24,21 @@ export function UpgradeModal({ onClose }: UpgradeModalProps) {
 
   return (
     <Modal title="Upgrade to Pro" onClose={onClose}>
-      <div className="grid" style={{ gap: 14 }}>
-        <p className="muted" style={{ marginTop: 0 }}>
-          This is a Pro feature. Upgrade to unlock job posting, full mentor access, private communities, and unlimited messaging for ₦9,000/month and grow with people who truly get you.
+      <div className="grid" style={{ gap: 16 }}>
+        <p className="muted" style={{ margin: "4px 0 0", lineHeight: 1.7, fontSize: 15 }}>
+          Upgrade to unlock job posting, full mentor access, private communities, and unlimited messaging. Grow with professionals who share your values.
         </p>
-        <div className="card" style={{ padding: 18, boxShadow: "none" }}>
+        <div className="card" style={{ padding: 16, boxShadow: "none" }}>
           <div className="row">
             <Crown color="#C9A84C" />
-            <strong>Professional plan</strong>
+            <div>
+              <strong style={{ fontSize: 16 }}>Professional plan</strong>
+              <p className="muted" style={{ margin: "4px 0 0", fontSize: 13, lineHeight: 1.5 }}>Built for Muslim professionals actively growing their network and visibility.</p>
+            </div>
           </div>
-          <p className="muted">Built for Muslim professionals actively growing their network and visibility.</p>
         </div>
-        {subscribe.error ? <p className="muted">Payment could not be started. Please try again.</p> : null}
-        <button className="btn btn-primary" disabled={subscribe.isPending} onClick={() => subscribe.mutate()}>
+        {subscribe.error ? <p className="muted" style={{ fontSize: 13, textAlign: "center" }}>Payment could not be started. Please try again.</p> : null}
+        <button className="btn btn-primary" disabled={subscribe.isPending} onClick={() => subscribe.mutate()} style={{ width: "100%" }}>
           {subscribe.isPending ? "Opening Paystack..." : "Continue to Paystack"}
         </button>
       </div>

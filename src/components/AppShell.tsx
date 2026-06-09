@@ -5,8 +5,8 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
-  Bell, Briefcase, Compass, Home, MessageCircle, Settings,
-  Sparkles, UserRound, ChevronDown, LogOut, Grid3X3, X,
+  Briefcase, Compass, Home, MessageCircle, Settings,
+  Sparkles, UserRound, ChevronDown, LogOut, Grid3X3, X, Bell,
 } from "lucide-react";
 import { Avatar } from "@/components/Avatar";
 import { apiGet } from "@/lib/api/client";
@@ -19,7 +19,6 @@ const navItems = [
   { href: "/mentorship", label: "Mentorship", icon: Sparkles },
   { href: "/jobs", label: "Jobs", icon: Briefcase },
   { href: "/messages", label: "Messages", icon: MessageCircle },
-  { href: "/notifications", label: "Alerts", icon: Bell },
 ];
 
 const bottomTabs = [
@@ -32,7 +31,6 @@ const bottomTabs = [
 const moreItems = [
   { href: "/mentorship", label: "Mentorship", icon: Sparkles },
   { href: "/jobs", label: "Jobs", icon: Briefcase },
-  { href: "/notifications", label: "Alerts", icon: Bell },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
@@ -40,10 +38,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [showDropdown, setShowDropdown] = useState(false);
   const [showMoreSheet, setShowMoreSheet] = useState(false);
+  const [dismissedNotif, setDismissedNotif] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { data: currentUser } = useQuery({ queryKey: ["me"], queryFn: () => apiGet<User>("/api/users/me") });
   const { data: notifications = [] } = useQuery({ queryKey: ["notifications"], queryFn: () => apiGet<Notification[]>("/api/notifications"), enabled: Boolean(currentUser) });
   const unreadCount = notifications.filter((notification) => !notification.is_read).length;
+  const latestNotification = notifications.find((n) => !n.is_read);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -98,6 +98,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       </nav>
+
+      {/* Notification banner at top of page */}
+      {latestNotification && dismissedNotif !== latestNotification.id ? (
+        <div className="notification-banner">
+          <Bell size={16} />
+          <span>{latestNotification.content}</span>
+          <button className="notification-banner-close" onClick={() => setDismissedNotif(latestNotification.id)} aria-label="Dismiss"><X size={14} /></button>
+        </div>
+      ) : null}
 
       {/* Main content */}
       <main className="container app-main">{children}</main>

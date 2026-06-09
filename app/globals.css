@@ -311,6 +311,13 @@ button { cursor: pointer; }
 .desktop-only { display:flex; }
 .app-nav--desktop { display:block; }
 
+/* Notification banner at top of page */
+.notification-banner { display:flex; align-items:center; gap:10px; padding:10px 18px; background:rgba(26,107,92,0.92); border-bottom:1px solid rgba(201,168,76,0.2); font-size:13px; font-weight:500; color:rgba(255,255,255,0.92); }
+.notification-banner span { flex:1; line-height:1.4; }
+.notification-banner svg { flex:0 0 auto; color:var(--color-accent); }
+.notification-banner-close { flex:0 0 auto; background:transparent; border:0; color:rgba(255,255,255,0.5); cursor:pointer; padding:4px; border-radius:6px; display:grid; place-items:center; }
+.notification-banner-close:hover { background:rgba(255,255,255,0.1); color:#fff; }
+
 /* Global scale metadata */
 html[lang] { word-break:break-word; }
 
@@ -339,6 +346,17 @@ html[lang] { word-break:break-word; }
   /* Hide desktop nav on mobile */
   .app-nav--desktop { display:none; }
   .desktop-only { display:none; }
+  
+  /* Fix oversized text on mobile */
+  .screen-title h1 { font-size:28px !important; }
+  .screen-title p { font-size:13px !important; }
+  h1.font-display { font-size:32px !important; }
+  .card p, .card .muted, .card span:not(.pill):not(.btn) { font-size:14px; }
+  .card strong:not(.sponsored-label) { font-size:15px; }
+  .modal { padding:20px 16px; border-radius:16px; margin:0 8px; }
+  .modal-header h2 { font-size:22px; }
+  .modal p, .modal .muted { font-size:14px; line-height:1.6; }
+  .modal .btn { font-size:14px; min-height:42px; }
   
   /* Bottom nav bar */
   .bottom-nav { display:flex; position:fixed; bottom:0; left:0; right:0; z-index:40; background:rgba(13,27,30,0.96); backdrop-filter:blur(12px); border-top:1px solid rgba(255,255,255,0.06); padding:6px 0; justify-content:space-around; align-items:center; }
