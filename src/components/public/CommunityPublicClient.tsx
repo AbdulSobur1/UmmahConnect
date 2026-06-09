@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import { formatPostTime } from '@/lib/utils/time';
 import { GatedButton } from '@/components/ui/GatedButton';
 
 type CommunityPost = {
@@ -47,7 +48,7 @@ export function CommunityPublicClient({ communityId, posts, user }: CommunityPub
               ) : (
                 <span>Member</span>
               )}
-              <small className="muted">{post.created_at.slice(0, 10)}</small>
+              <small className="muted">{formatPostTime(post.created_at)}</small>
             </div>
             <p style={{ margin: '12px 0' }}>{post.content}</p>
             <div className="row" style={{ gap: 8 }}>

@@ -22,15 +22,15 @@ const navItems = [
 ];
 
 const bottomTabs = [
-  { href: "/feed", label: "Feed", icon: Home },
+  { href: "/feed", label: "Home", icon: Home },
   { href: "/discover", label: "Discover", icon: Compass },
+  { href: "/jobs", label: "Jobs", icon: Briefcase },
   { href: "/messages", label: "Messages", icon: MessageCircle },
   { href: "/profile", label: "Profile", icon: UserRound },
 ];
 
 const moreItems = [
   { href: "/mentorship", label: "Mentorship", icon: Sparkles },
-  { href: "/jobs", label: "Jobs", icon: Briefcase },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

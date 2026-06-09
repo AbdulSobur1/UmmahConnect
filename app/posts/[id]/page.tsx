@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { PublicLayout } from '@/components/layouts/PublicLayout';
+import { formatPostTime } from '@/lib/utils/time';
 import { PostPublicClient } from '@/components/public/PostPublicClient';
 import { postDto, publicProfileDto } from '@/lib/api/mappers';
 import { getSessionUser } from '@/lib/auth/session';
@@ -84,7 +85,7 @@ export default async function PublicPostPage({ params }: PageProps) {
               ) : (
                 <span>Member</span>
               )}
-              <small className="muted">{post.created_at.slice(0, 10)}</small>
+              <small className="muted">{formatPostTime(post.created_at)}</small>
             </div>
             <p className="public-text">{post.content}</p>
             <PostPublicClient postId={post.id} initialLikes={post.likes_count} user={user} />
@@ -103,7 +104,7 @@ export default async function PublicPostPage({ params }: PageProps) {
                       ) : (
                         <span>Member</span>
                       )}
-                      <small className="muted">{comment.created_at.slice(0, 10)}</small>
+                      <small className="muted">{formatPostTime(comment.created_at)}</small>
                     </div>
                     <p className="public-copy">{comment.content}</p>
                   </div>

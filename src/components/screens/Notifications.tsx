@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bell, CheckCheck } from "lucide-react";
 import { useEffect } from "react";
 import { apiGet, apiSend } from "@/lib/api/client";
+import { formatPostTime } from "@/lib/utils/time";
 import type { Notification, User } from "@/lib/mock";
 export function Notifications() {
   const queryClient = useQueryClient();
@@ -29,7 +30,7 @@ export function Notifications() {
       <div className="grid">
         {(notifications.data ?? []).map((notification) => (
           <article className="card row space-between" style={{ padding: 18, borderColor: notification.is_read ? "var(--line)" : "#C9A84C" }} key={notification.id}>
-            <div className="row"><Bell color={notification.is_read ? "#6B7E78" : "#1A6B5C"} /><div><strong>{notification.content}</strong><p className="muted" style={{ margin: 0 }}>{notification.type} · {notification.created_at}</p></div></div>
+            <div className="row"><Bell color={notification.is_read ? "#6B7E78" : "#1A6B5C"} /><div><strong>{notification.content}</strong><p className="muted" style={{ margin: 0 }}>{notification.type} · {formatPostTime(notification.created_at)}</p></div></div>
             <div className="row">{!notification.is_read ? <span className="pill">Unread</span> : null}{notification.type === "connection" && notification.reference_id ? <button className="btn btn-accent" disabled={acceptConnection.isPending} onClick={() => acceptConnection.mutate({ connectionId: notification.reference_id!, notificationId: notification.id })}>Accept</button> : null}<button className="btn btn-ghost" onClick={() => markOne.mutate(notification.id)}>Read</button></div>
           </article>
         ))}

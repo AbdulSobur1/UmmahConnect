@@ -118,7 +118,8 @@ export function publicProfileDto(user: any) {
     bio: s(user, 'bio', 'bio'),
     skills: a(user, 'skills', 'skills'),
     open_to_opportunities: b(user, 'open_to_opportunities', 'openToOpportunities'),
-    avatar_url: s(user, 'avatar_url', 'avatarUrl') || null,
+    banner_url: s(user, 'banner_url', 'bannerUrl') || null,
+  avatar_url: s(user, 'avatar_url', 'avatarUrl') || null,
     created_at: s(user, 'created_at', 'createdAt'),
   };
 }
@@ -138,6 +139,7 @@ export function userDto(user: any) {
     show_photo: b(user, 'show_photo', 'showPhoto'),
     open_to_opportunities: b(user, 'open_to_opportunities', 'openToOpportunities'),
     avatar_url: s(user, 'avatar_url', 'avatarUrl') || null,
+    banner_url: s(user, 'banner_url', 'bannerUrl') || null,
     created_at: s(user, 'created_at', 'createdAt'),
   };
 }

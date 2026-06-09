@@ -18,6 +18,7 @@ export const users = pgTable('users', {
   plan: text('plan').default('free').notNull(),
   showPhoto: boolean('show_photo').default(true).notNull(),
   openToOpportunities: boolean('open_to_opportunities').default(false).notNull(),
+  bannerUrl: text('banner_url'),
   avatarUrl: text('avatar_url'),
   isBanned: boolean('is_banned').default(false).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),

@@ -5,10 +5,31 @@
   --color-bg-dark: #0D1B1E; /* Dark background */
   --color-bg-secondary: #132420; /* Cards */
   --color-bg-light: #FAF7F2; /* Light */
-  --color-muted-dark: rgba(255,255,255,0.45);
+  --color-muted-dark: rgba(255,255,255,0.55);
   --color-muted-light: #6B7E78;
   --color-success: #5ECDB5; /* Halal */
   --line: rgba(255,255,255,0.08);
+
+  /* Typography scale */
+  --fs-h1: 24px;
+  --fs-h2: 18px;
+  --fs-card-title: 16px;
+  --fs-body: 14px;
+  --fs-muted: 13px;
+  --fs-label: 11px;
+
+  /* Spacing */
+  --page-padding: 20px;
+  --card-padding: 16px;
+  --section-gap: 24px;
+  --item-gap: 12px;
+  --touch-target: 44px;
+
+  /* Radii */
+  --radius-card: 16px;
+  --radius-btn: 100px;
+  --radius-input: 12px;
+  --radius-pill: 100px;
 }
 
 * { box-sizing: border-box; }
@@ -294,6 +315,18 @@ button { cursor: pointer; }
 .avatar-upload-btn { position:absolute; bottom:4px; right:4px; width:36px; height:36px; border-radius:50%; background:var(--color-primary); color:#fff; border:2px solid #0D1B1E; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 160ms ease; z-index:2; }
 .avatar-upload-btn:hover { background:#155a4d; transform:scale(1.08); }
 
+/* Banner upload button */
+.banner-upload-btn { position:absolute; bottom:12px; right:12px; width:32px; height:32px; border-radius:50%; background:rgba(0,0,0,0.5); color:#fff; border:2px solid transparent; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 160ms ease; z-index:2; }
+.banner-upload-btn:hover { background:rgba(0,0,0,0.7); transform:scale(1.08); }
+
+/* Profile banner */
+.profile-banner { position:relative; }
+
+/* Skill scroll */
+.skill-scroll::-webkit-scrollbar { height:4px; }
+.skill-scroll::-webkit-scrollbar-track { background:transparent; }
+.skill-scroll::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); border-radius:999px; }
+
 /* Avatar dropdown menu */
 .avatar-dropdown-btn { display:flex; align-items:center; gap:6px; border:0; padding:2px 6px; border-radius:8px; background:transparent; color:rgba(255,255,255,0.45); cursor:pointer; }
 .avatar-dropdown-btn:hover { background:rgba(255,255,255,0.04); }
@@ -359,9 +392,9 @@ html[lang] { word-break:break-word; }
   .modal .btn { font-size:14px; min-height:42px; }
   
   /* Bottom nav bar */
-  .bottom-nav { display:flex; position:fixed; bottom:0; left:0; right:0; z-index:40; background:rgba(13,27,30,0.96); backdrop-filter:blur(12px); border-top:1px solid rgba(255,255,255,0.06); padding:6px 0; justify-content:space-around; align-items:center; }
-  .bottom-nav-item { display:flex; flex-direction:column; align-items:center; gap:2px; padding:6px 8px 4px; border-radius:8px; color:rgba(255,255,255,0.38); font-size:10px; font-weight:600; text-decoration:none; min-width:56px; border:0; background:transparent; cursor:pointer; transition:color 160ms ease; position:relative; }
-  .bottom-nav-item--active { color:var(--color-success); }
+  .bottom-nav { display:flex; position:fixed; bottom:0; left:0; right:0; z-index:40; background:rgba(13,27,30,0.96); backdrop-filter:blur(12px); border-top:1px solid rgba(255,255,255,0.06); padding:4px 0; justify-content:space-around; align-items:center; }
+  .bottom-nav-item { display:flex; flex-direction:column; align-items:center; gap:1px; padding:6px 8px 4px; border-radius:8px; color:rgba(255,255,255,0.38); font-size:11px; font-weight:600; text-decoration:none; min-width:48px; min-height:48px; border:0; background:transparent; cursor:pointer; transition:color 160ms ease; position:relative; }
+  .bottom-nav-item--active { color:var(--color-primary); }
   .bottom-nav-item svg { display:block; }
   .bottom-nav-badge { position:absolute; top:2px; right:8px; width:8px; height:8px; border-radius:50%; background:#f87171; }
   
