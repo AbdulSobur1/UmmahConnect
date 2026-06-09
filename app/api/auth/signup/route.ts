@@ -21,11 +21,13 @@ export const POST = withHandler(async (req: NextRequest) => {
 
   const hashedPassword = await bcrypt.hash(body.password, 12);
 
+  const industry = body.industry === 'Other' && body.industry_custom ? body.industry_custom : body.industry;
+
   const [user] = await db.insert(users).values({
     fullName: body.full_name,
     email: body.email,
     password: hashedPassword,
-    industry: body.industry,
+    industry,
     careerStage: body.career_stage,
     city: body.city,
     country: 'Nigeria',

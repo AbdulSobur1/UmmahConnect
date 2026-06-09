@@ -54,7 +54,8 @@ export default function SignupForm() {
   const [loading, setLoading] = useState(false);
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [plan, setPlan] = useState<"free" | "pro">("free");
+  const [showCustomIndustry, setShowCustomIndustry] = useState(false);
+
   const strength = useMemo(() => passwordStrength(password), [password]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -81,7 +82,7 @@ export default function SignupForm() {
     const response = await fetch("/api/auth/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...body, password, plan, country: "Nigeria" }),
+      body: JSON.stringify({ ...body, password, country: "Nigeria" }),
     });
     const json = await response.json() as SignupResponse;
     setLoading(false);
@@ -136,10 +137,11 @@ export default function SignupForm() {
 
         <label className="auth-field">
           <span>Industry</span>
-          <select name="industry" defaultValue="">
+          <select name="industry" defaultValue="" onChange={(e) => setShowCustomIndustry(e.target.value === 'Other')}>
             <option value="" disabled>Select industry</option>
             {industries.map((industry) => <option key={industry}>{industry}</option>)}
           </select>
+          {showCustomIndustry && <input name="industry_custom" type="text" placeholder="Type your industry..." style={{ marginTop: 8 }} />}
           {errors.industry ? <small>{errors.industry}</small> : null}
         </label>
 
@@ -161,20 +163,7 @@ export default function SignupForm() {
           {errors.city ? <small>{errors.city}</small> : null}
         </label>
 
-        <fieldset className="plan-field">
-          <legend>Plan</legend>
-          <label className={`plan-card ${plan === "free" ? "plan-card--selected" : ""}`}>
-            <input type="radio" name="plan" value="free" checked={plan === "free"} onChange={() => setPlan("free")} />
-            <strong>Free</strong>
-            <span>₦0/mo</span>
-          </label>
-          <label className={`plan-card plan-card--pro ${plan === "pro" ? "plan-card--selected" : ""}`}>
-            <input type="radio" name="plan" value="pro" checked={plan === "pro"} onChange={() => setPlan("pro")} />
-            <span className="recommended">Recommended</span>
-            <strong>Pro</strong>
-            <span>₦9,000/mo</span>
-          </label>
-        </fieldset>
+        <input type="hidden" name="plan" value="free" />
 
         {formError ? <p className="auth-form-error">{formError}</p> : null}
 

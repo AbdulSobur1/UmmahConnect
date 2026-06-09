@@ -22,6 +22,7 @@ type PaystackVerifyResponse = {
 export async function initializePaystackTransaction(input: {
   email: string;
   amountKobo: number;
+  currency?: string;
   callbackUrl: string;
   metadata: Record<string, string>;
 }) {
@@ -34,6 +35,7 @@ export async function initializePaystackTransaction(input: {
     body: JSON.stringify({
       email: input.email,
       amount: input.amountKobo,
+      currency: input.currency ?? "NGN",
       callback_url: input.callbackUrl,
       metadata: input.metadata,
     }),

@@ -20,6 +20,7 @@ export const signupSchema = z.object({
     .regex(/[0-9]/, 'At least one number')
     .regex(/[^A-Za-z0-9]/, 'At least one special character'),
   industry: z.string().max(100),
+  industry_custom: z.string().max(100).optional(),
   career_stage: z.enum(['Student','Early Career','Mid-Level','Senior','Executive','Entrepreneur']),
   city: z.enum(['Lagos','Abuja','Kano','Kaduna','Port Harcourt','Ibadan','Maiduguri','Sokoto','Zaria','Other']),
   country: z.literal('Nigeria'),

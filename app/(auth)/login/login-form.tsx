@@ -99,7 +99,7 @@ export default function LoginForm() {
         </button>
 
         <div className="auth-divider" />
-        <p className="auth-switch">Don&apos;t have an account? <Link href="/signup">Join free</Link></p>
+        <p className="auth-switch">Don&apos;t have an account? <Link href="/signup">Join</Link></p>
       </form>
     </div>
   );

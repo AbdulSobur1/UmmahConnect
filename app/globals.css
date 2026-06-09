@@ -277,9 +277,9 @@ button { cursor: pointer; }
 
 @keyframes pulse { 0%, 100% { opacity: 0.9; } 50% { opacity: 1; } }
 
-/* Footer Arabic */
-.app-footer { text-align:center; padding:18px 0; color:var(--color-accent); font-weight:700 }
-.app-footer [lang="ar"] { color:var(--color-accent); direction:rtl }
+/* Header Bismillah */
+.app-header-bismillah { text-align:center; padding:16px 0 6px; color:var(--color-accent); font-weight:700; font-size:15px; background:rgba(13,27,30,0.96); border-bottom:1px solid rgba(201,168,76,0.08); position:sticky; top:0; z-index:50; }
+.app-header-bismillah [lang="ar"] { color:var(--color-accent); direction:rtl; letter-spacing:0.5px; }
 
 /* Responsive */
 @media (max-width:860px) {

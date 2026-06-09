@@ -5,7 +5,6 @@ import {
   BarChart3,
   Briefcase,
   CalendarDays,
-  CheckCircle2,
   Globe2,
   HeartHandshake,
   LockKeyhole,
@@ -65,14 +64,14 @@ const features = [
     icon: Sparkles,
     title: "Values-based mentorship",
     text: "Match by industry, career stage, language, location, and Islamic values so the real conversation starts faster.",
-    label: "Pro exclusive",
+    label: "Premium",
     gold: true,
   },
   {
     icon: Briefcase,
     title: "Hire and get hired",
     text: "Pro members can post halal-verified roles and reach Muslim talent without turning hiring into a guessing game.",
-    label: "Pro exclusive",
+    label: "Premium",
     gold: true,
   },
   {
@@ -104,38 +103,6 @@ const niches = [
   "Islamic Finance",
 ];
 
-const plans = [
-  {
-    eyebrow: "Community",
-    name: "Free",
-    price: "₦0",
-    suffix: "/month",
-    text: "Always free. Built for discovery and community growth.",
-    features: ["Professional profile", "Browse niche communities", "Connect with up to 30 professionals", "10 messages per week", "Browse jobs and mentorship", "Prayer reminders"],
-    cta: "Join free",
-  },
-  {
-    eyebrow: "Professional",
-    name: "Pro",
-    price: "₦9,000",
-    suffix: "/month",
-    text: "For serious professionals, mentors, and employers.",
-    features: ["Everything in Free", "Unlimited connections", "Unlimited messaging to all users", "Post job listings and hire", "Full mentorship matching", "Halal job alerts and analytics"],
-    cta: "Start Pro",
-    featured: true,
-  },
-  {
-    eyebrow: "Event Sponsor",
-    name: "Sponsor",
-    price: "From ₦49,000",
-    suffix: "/event",
-    text: "A separate pay-per-event lane for organisations only.",
-    features: ["Featured event listing", "Sponsored feed and homepage banner", "Target by niche or industry", "Views, clicks, registrations", "Verified Organiser badge"],
-    cta: "Promote event",
-    sponsor: true,
-  },
-];
-
 export function Landing() {
   return (
     <div className="landing">
@@ -148,8 +115,7 @@ export function Landing() {
             <Link href="#problem">Problem</Link>
             <Link href="#features">Features</Link>
             <Link href="#mentorship">Mentorship</Link>
-            <Link href="#pricing">Pricing</Link>
-            <Link className="btn btn-accent" href="/signup">Join Free</Link>
+            <Link className="btn btn-accent" href="/signup">Join Ummah Connect</Link>
           </div>
         </div>
       </nav>
@@ -167,7 +133,7 @@ export function Landing() {
             </p>
             <div className="row row--wrap">
               <Link className="btn btn-accent" href="/signup">
-                Join for Free <ArrowRight size={18} />
+                Get Started <ArrowRight size={18} />
               </Link>
               <Link className="btn btn-ghost" href="/login">
                 Log In
@@ -272,13 +238,13 @@ export function Landing() {
       <section className="mentor-band" id="mentorship">
         <div className="container mentor-band-inner">
           <div>
-            <span className="section-kicker">Pro plan feature</span>
+            <span className="section-kicker">Premium feature</span>
             <h2>Mentorship that actually gets you.</h2>
             <p>
               Match with mentors who understand your industry, career stage, language, location, and Islamic values.
               No more explaining your worldview before the real conversation begins.
             </p>
-            <Link className="btn btn-accent" href="/mentorship">Unlock Mentorship</Link>
+            <Link className="btn btn-accent" href="/mentorship">Explore Mentorship</Link>
           </div>
           <div className="mentor-preview">
             {[
@@ -342,34 +308,6 @@ export function Landing() {
           <div className="niche-grid">
             {niches.map((niche) => (
               <div className="niche-tile" key={niche}>{niche}</div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="landing-section landing-section--muted" id="pricing">
-        <div className="container">
-          <div className="section-heading">
-            <span>Pricing</span>
-            <h2>Three plans. Three purposes.</h2>
-            <p>Community growth, professional depth, and event promotion each get a clean lane.</p>
-          </div>
-          <div className="pricing-grid">
-            {plans.map((plan) => (
-              <article className={`pricing-card ${plan.featured ? "pricing-card--featured" : ""} ${plan.sponsor ? "pricing-card--sponsor" : ""}`} key={plan.name}>
-                <span className="mini-label">{plan.eyebrow}</span>
-                <h3>{plan.name}</h3>
-                <strong>{plan.price} <small>{plan.suffix}</small></strong>
-                <p>{plan.text}</p>
-                <ul>
-                  {plan.features.map((feature) => (
-                    <li key={feature}><CheckCircle2 size={16} /> {feature}</li>
-                  ))}
-                </ul>
-                <Link className={`btn ${plan.featured ? "btn-accent" : "btn-ghost"}`} href={plan.name === "Free" ? "/signup" : "/settings"}>
-                  {plan.cta}
-                </Link>
-              </article>
             ))}
           </div>
         </div>
