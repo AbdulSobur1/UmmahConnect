@@ -6,7 +6,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Avatar } from "@/components/Avatar";
 import { apiGet, apiSend } from "@/lib/api/client";
 import { formatMessageTime } from "@/lib/utils/time";
-import type { Message, User } from "@/lib/mock";
+import type { Message, User } from "@/types";
 
 export function Messages() {
   const queryClient = useQueryClient();

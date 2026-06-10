@@ -5,7 +5,6 @@ import { PublicLayout } from '@/components/layouts/PublicLayout';
 import { CommunityPublicClient } from '@/components/public/CommunityPublicClient';
 import { communityDto, postDto } from '@/lib/api/mappers';
 import { getSessionUser } from '@/lib/auth/session';
-import { getDemoCommunity, isDemoMode } from '@/lib/demo/server';
 import { db } from '@/lib/db';
 import { communities, posts, users } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
@@ -13,7 +12,6 @@ import { eq, desc } from 'drizzle-orm';
 type PageProps = { params: { id: string } };
 
 async function fetchCommunity(id: string) {
-  if (isDemoMode()) return getDemoCommunity(id);
   const [community] = await db
     .select()
     .from(communities)

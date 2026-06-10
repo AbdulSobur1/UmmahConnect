@@ -6,7 +6,6 @@ import { formatPostTime } from '@/lib/utils/time';
 import { PostPublicClient } from '@/components/public/PostPublicClient';
 import { postDto, publicProfileDto } from '@/lib/api/mappers';
 import { getSessionUser } from '@/lib/auth/session';
-import { getDemoPost, isDemoMode } from '@/lib/demo/server';
 import { db } from '@/lib/db';
 import { posts, users, comments } from '@/lib/db/schema';
 import { eq, asc } from 'drizzle-orm';
@@ -23,7 +22,6 @@ type PostWithComments = ReturnType<typeof postDto> & {
 };
 
 async function fetchPost(id: string): Promise<PostWithComments | null> {
-  if (isDemoMode()) return getDemoPost(id) as PostWithComments | null;
   const [post] = await db
     .select()
     .from(posts)

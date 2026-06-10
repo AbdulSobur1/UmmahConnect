@@ -6,11 +6,11 @@ import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Briefcase, Compass, Home, MessageCircle, Settings,
-  Sparkles, UserRound, ChevronDown, LogOut, Grid3X3, X, Bell,
+  Sparkles, UserRound, ChevronDown, LogOut, Bell, X,
 } from "lucide-react";
 import { Avatar } from "@/components/Avatar";
 import { apiGet } from "@/lib/api/client";
-import type { Notification, User } from "@/lib/mock";
+import type { Notification, User } from "@/types";
 
 const navItems = [
   { href: "/feed", label: "Feed", icon: Home },
@@ -29,19 +29,17 @@ const bottomTabs = [
   { href: "/profile", label: "Profile", icon: UserRound },
 ];
 
-const moreItems = [
-  { href: "/mentorship", label: "Mentorship", icon: Sparkles },
-  { href: "/settings", label: "Settings", icon: Settings },
-];
-
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [showDropdown, setShowDropdown] = useState(false);
-  const [showMoreSheet, setShowMoreSheet] = useState(false);
   const [dismissedNotif, setDismissedNotif] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { data: currentUser } = useQuery({ queryKey: ["me"], queryFn: () => apiGet<User>("/api/users/me") });
-  const { data: notifications = [] } = useQuery({ queryKey: ["notifications"], queryFn: () => apiGet<Notification[]>("/api/notifications"), enabled: Boolean(currentUser) });
+  const { data: notifications = [] } = useQuery({
+    queryKey: ["notifications"],
+    queryFn: () => apiGet<Notification[]>("/api/notifications"),
+    enabled: Boolean(currentUser),
+  });
   const unreadCount = notifications.filter((notification) => !notification.is_read).length;
   const latestNotification = notifications.find((n) => !n.is_read);
 
@@ -69,28 +67,110 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               const active = pathname === item.href;
               return (
                 <Link key={item.href} href={item.href} className={`nav-link ${active ? "nav-link-active" : ""}`}>
-                  <span className="row" style={{ gap: 6 }}>
+                  <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
                     <Icon size={16} />
                     {item.label}
-                    {item.href === "/notifications" && unreadCount > 0 ? <strong>{unreadCount}</strong> : null}
                   </span>
                 </Link>
               );
             })}
           </div>
           {/* Avatar dropdown — desktop */}
-          <div className="row desktop-only" ref={dropdownRef} style={{ position: "relative" }}>
-            <Link href="/settings" className="pill" style={{ cursor: "pointer", textDecoration: "none" }}>{currentUser?.plan === "free" ? "Free" : currentUser?.plan ?? "..."}</Link>
-            <button className="avatar-dropdown-btn" onClick={() => setShowDropdown((v) => !v)} aria-label="User menu">
+          <div
+            className="desktop-only"
+            ref={dropdownRef}
+            style={{ position: "relative", display: "flex", alignItems: "center", gap: 12 }}
+          >
+            <Link
+              href="/settings"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                borderRadius: 999,
+                padding: "8px 12px",
+                color: "#5ECDB5",
+                background: "rgba(94,205,181,0.1)",
+                border: "1px solid rgba(94,205,181,0.16)",
+                fontSize: 14,
+                fontWeight: 600,
+                textDecoration: "none",
+              }}
+            >
+              {currentUser?.plan === "free" ? "Free" : currentUser?.plan ?? "..."}
+            </Link>
+            <button
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                border: 0,
+                padding: "2px 6px",
+                borderRadius: 8,
+                background: "transparent",
+                color: "rgba(255,255,255,0.45)",
+                cursor: "pointer",
+              }}
+              onClick={() => setShowDropdown((v) => !v)}
+              aria-label="User menu"
+            >
               <Avatar name={currentUser?.full_name ?? "U"} size={32} />
               <ChevronDown size={14} />
             </button>
             {showDropdown ? (
-              <div className="avatar-dropdown-menu">
-                <Link href="/settings" className="avatar-dropdown-item" onClick={() => setShowDropdown(false)}>
+              <div
+                style={{
+                  position: "absolute",
+                  top: "calc(100% + 8px)",
+                  right: 0,
+                  background: "#132420",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  borderRadius: 12,
+                  padding: 6,
+                  minWidth: 180,
+                  zIndex: 30,
+                  boxShadow: "0 12px 40px rgba(0,0,0,0.4)",
+                }}
+              >
+                <Link
+                  href="/settings"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    width: "100%",
+                    padding: "10px 12px",
+                    borderRadius: 8,
+                    color: "rgba(255,255,255,0.8)",
+                    fontSize: 14,
+                    fontWeight: 600,
+                    textDecoration: "none",
+                    border: 0,
+                    background: "transparent",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => setShowDropdown(false)}
+                >
                   <Settings size={16} /> Settings
                 </Link>
-                <button className="avatar-dropdown-item" onClick={() => { window.location.href = "/api/auth/logout"; }}>
+                <button
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    width: "100%",
+                    padding: "10px 12px",
+                    borderRadius: 8,
+                    color: "rgba(255,255,255,0.8)",
+                    fontSize: 14,
+                    fontWeight: 600,
+                    textDecoration: "none",
+                    border: 0,
+                    background: "transparent",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => { window.location.href = "/api/auth/logout"; }}
+                >
                   <LogOut size={16} /> Sign out
                 </button>
               </div>
@@ -101,59 +181,77 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Notification banner at top of page */}
       {latestNotification && dismissedNotif !== latestNotification.id ? (
-        <div className="notification-banner">
-          <Bell size={16} />
-          <span>{latestNotification.content}</span>
-          <button className="notification-banner-close" onClick={() => setDismissedNotif(latestNotification.id)} aria-label="Dismiss"><X size={14} /></button>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            padding: "10px 18px",
+            background: "rgba(26,107,92,0.92)",
+            borderBottom: "1px solid rgba(201,168,76,0.2)",
+            fontSize: 13,
+            fontWeight: 500,
+            color: "rgba(255,255,255,0.92)",
+          }}
+        >
+          <Bell size={16} style={{ flex: "0 0 auto", color: "#C9A84C" }} />
+          <span style={{ flex: 1, lineHeight: 1.4 }}>{latestNotification.content}</span>
+          <button
+            style={{
+              flex: "0 0 auto",
+              background: "transparent",
+              border: 0,
+              color: "rgba(255,255,255,0.5)",
+              cursor: "pointer",
+              padding: 4,
+              borderRadius: 6,
+            }}
+            onClick={() => setDismissedNotif(latestNotification.id)}
+            aria-label="Dismiss"
+          >
+            <X size={14} />
+          </button>
         </div>
       ) : null}
 
       {/* Main content */}
       <main className="container app-main">{children}</main>
 
-      {/* Mobile bottom tab bar */}
+      {/* Mobile bottom tab bar — exactly 5 tabs */}
       <nav className="bottom-nav">
         {bottomTabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = pathname === tab.href || (tab.href === "/feed" && pathname === "/");
           return (
-            <Link key={tab.href} href={tab.href} className={`bottom-nav-item ${isActive ? "bottom-nav-item--active" : ""}`}>
+            <Link
+              key={tab.href}
+              href={tab.href}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 1,
+                padding: "6px 8px 4px",
+                borderRadius: 8,
+                color: isActive ? "#1A6B5C" : "rgba(255,255,255,0.5)",
+                fontSize: 11,
+                fontWeight: 600,
+                fontFamily: "'DM Sans', sans-serif",
+                textDecoration: "none",
+                minWidth: 48,
+                minHeight: 48,
+                border: 0,
+                background: "transparent",
+                cursor: "pointer",
+                position: "relative",
+              }}
+            >
               <Icon size={22} />
               <span>{tab.label}</span>
-              {tab.href === "/messages" ? <span className="bottom-nav-badge" /> : null}
             </Link>
           );
         })}
-        <button className={`bottom-nav-item ${showMoreSheet ? "bottom-nav-item--active" : ""}`} onClick={() => setShowMoreSheet(true)}>
-          <Grid3X3 size={22} />
-          <span>More</span>
-        </button>
       </nav>
-
-      {/* More bottom sheet */}
-      {showMoreSheet ? (
-        <div className="more-sheet-backdrop" onClick={() => setShowMoreSheet(false)}>
-          <div className="more-sheet" onClick={(e) => e.stopPropagation()}>
-            <div className="more-sheet-header">
-              <strong>More</strong>
-              <button className="more-sheet-close" onClick={() => setShowMoreSheet(false)}><X size={20} /></button>
-            </div>
-            <div className="more-sheet-grid">
-              {moreItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = pathname === item.href;
-                return (
-                  <Link key={item.href} href={item.href} className={`more-sheet-item ${isActive ? "more-sheet-item--active" : ""}`} onClick={() => setShowMoreSheet(false)}>
-                    <Icon size={22} />
-                    <span>{item.label}</span>
-                    {item.href === "/notifications" && unreadCount > 0 ? <span className="more-sheet-badge">{unreadCount}</span> : null}
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 }

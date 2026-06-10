@@ -1,4 +1,4 @@
-import { avatarColor, initials } from "@/lib/mock";
+import { avatarColor, initials } from "@/lib/utils/avatar";
 
 type AvatarProps = {
   name: string;

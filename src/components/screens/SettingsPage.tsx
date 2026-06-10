@@ -6,7 +6,7 @@ import { Bell, Crown, Eye, KeyRound, Lock, Shield } from "lucide-react";
 import { FormEvent, useState } from "react";
 import { Modal } from "@/components/Modal";
 import { apiGet, apiSend } from "@/lib/api/client";
-import type { User } from "@/lib/mock";
+import type { User } from "@/types";
 
 const tabs = ["Account", "Privacy", "Plan", "Notifications"];
 

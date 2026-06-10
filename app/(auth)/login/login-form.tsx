@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { FormEvent, useState } from "react";
+import { signIn } from "next-auth/react";
 
 type LoginResponse = {
   error: string | null;
@@ -42,16 +43,16 @@ export default function LoginForm() {
       return;
     }
 
-    const response = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
+    const result = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
     });
-    const json = await response.json() as LoginResponse;
+
     setLoading(false);
 
-    if (!response.ok || json.error) {
-      setFormError(json.error === "too_many_requests" ? json.message ?? "Too many attempts. Try again later." : "Invalid email or password.");
+    if (result?.error) {
+      setFormError("Invalid email or password.");
       return;
     }
 
@@ -61,8 +62,26 @@ export default function LoginForm() {
   return (
     <div className="auth-stack">
       <form className="auth-card" onSubmit={submit}>
-        <Link href="/" className="auth-logo">Ummah <span>Connect</span></Link>
-        <h1>Welcome back</h1>
+        <div style={{ textAlign: "center", marginBottom: 8 }}>
+          <span
+            lang="ar"
+            dir="rtl"
+            style={{
+              color: "#C9A84C",
+              fontSize: 18,
+              fontWeight: 700,
+              fontFamily: "serif",
+              display: "block",
+              marginBottom: 12,
+            }}
+          >
+            بسم الله الرحمن الرحيم
+          </span>
+          <Link href="/" className="auth-logo" style={{ marginBottom: 0 }}>
+            Ummah <span>Connect</span>
+          </Link>
+        </div>
+        <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 32, fontWeight: 900 }}>Welcome back</h1>
         <p className="auth-subtitle">Sign in to your Ummah Connect account</p>
 
         {signupSuccess ? (
@@ -80,8 +99,17 @@ export default function LoginForm() {
         <label className="auth-field">
           <span>Password</span>
           <div className="auth-password">
-            <input name="password" type={showPassword ? "text" : "password"} placeholder="Your password" autoComplete="current-password" />
-            <button type="button" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? "Hide password" : "Show password"}>
+            <input
+              name="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="Your password"
+              autoComplete="current-password"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </div>
@@ -95,11 +123,17 @@ export default function LoginForm() {
         {formError ? <p className="auth-form-error">{formError}</p> : null}
 
         <button className="auth-submit" disabled={loading}>
-          {loading ? <><Loader2 className="spin" size={17} /> Signing in...</> : "Sign in"}
+          {loading ? (
+            <><Loader2 className="spin" size={17} /> Signing in...</>
+          ) : (
+            "Sign in"
+          )}
         </button>
 
         <div className="auth-divider" />
-        <p className="auth-switch">Don&apos;t have an account? <Link href="/signup">Join</Link></p>
+        <p className="auth-switch">
+          Don&apos;t have an account? <Link href="/signup">Join</Link>
+        </p>
       </form>
     </div>
   );

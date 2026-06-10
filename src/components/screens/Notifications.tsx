@@ -5,7 +5,7 @@ import { Bell, CheckCheck } from "lucide-react";
 import { useEffect } from "react";
 import { apiGet, apiSend } from "@/lib/api/client";
 import { formatPostTime } from "@/lib/utils/time";
-import type { Notification, User } from "@/lib/mock";
+import type { Notification, User } from "@/types";
 export function Notifications() {
   const queryClient = useQueryClient();
   const me = useQuery({ queryKey: ["me"], queryFn: () => apiGet<User>("/api/users/me") });

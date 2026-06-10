@@ -4,7 +4,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { ChevronDown, Crown, LockKeyhole, Sparkles, UserRound } from "lucide-react";
 import { useState } from "react";
 import { apiGet, apiSend } from "@/lib/api/client";
-import type { MentorProfile, User } from "@/lib/mock";
+import type { MentorProfile, User } from "@/types";
 
 export function Mentorship() {
   const [expanded, setExpanded] = useState<string | null>(null);

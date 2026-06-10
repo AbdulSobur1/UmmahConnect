@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { FormEvent, useMemo, useState } from "react";
+import { signIn } from "next-auth/react";
 
 const industries = [
   "Tech & Software",
@@ -23,9 +24,8 @@ const careerStages = ["Student", "Early Career", "Mid-Level", "Senior", "Executi
 const cities = ["Lagos", "Abuja", "Kano", "Kaduna", "Port Harcourt", "Ibadan", "Maiduguri", "Sokoto", "Zaria", "Other"];
 
 type SignupResponse = {
-  data: { email?: string } | null;
+  data?: { email?: string } | null;
   error: string | null;
-  message?: string;
 };
 
 function passwordIssues(password: string) {
@@ -88,18 +88,53 @@ export default function SignupForm() {
     setLoading(false);
 
     if (!response.ok || json.error) {
-      setFormError(json.error === "too_many_requests" ? json.message ?? "Too many attempts. Try again later." : "Signup could not be completed. Please review your details and try again.");
+      setFormError(json.error === "too_many_requests"
+        ? "Too many attempts. Try again later."
+        : json.error === "An account with this email already exists."
+          ? "Email already registered"
+          : "Signup could not be completed. Please review your details and try again.");
       return;
     }
 
-    router.push(`/login?signup=success`);
+    // Auto-sign in after successful registration
+    const signInResult = await signIn("credentials", {
+      email: body.email as string,
+      password,
+      redirect: false,
+    });
+
+    if (signInResult?.error) {
+      // Fallback: redirect to login page if auto-signin fails
+      router.push("/login?signup=success");
+      return;
+    }
+
+    router.push("/feed");
   }
 
   return (
     <div className="auth-stack">
       <form className="auth-card auth-card--wide" onSubmit={submit}>
-        <Link href="/" className="auth-logo">Ummah <span>Connect</span></Link>
-        <h1>Create your account</h1>
+        <div style={{ textAlign: "center", marginBottom: 8 }}>
+          <span
+            lang="ar"
+            dir="rtl"
+            style={{
+              color: "#C9A84C",
+              fontSize: 18,
+              fontWeight: 700,
+              fontFamily: "serif",
+              display: "block",
+              marginBottom: 12,
+            }}
+          >
+            بسم الله الرحمن الرحيم
+          </span>
+          <Link href="/" className="auth-logo" style={{ marginBottom: 0 }}>
+            Ummah <span>Connect</span>
+          </Link>
+        </div>
+        <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 32, fontWeight: 900 }}>Create your account</h1>
         <p className="auth-subtitle">Join Muslim professionals across Nigeria</p>
 
         <label className="auth-field">
@@ -117,8 +152,19 @@ export default function SignupForm() {
         <label className="auth-field">
           <span>Password</span>
           <div className="auth-password">
-            <input name="password" type={showPassword ? "text" : "password"} placeholder="Create a password" autoComplete="new-password" value={password} onChange={(event) => setPassword(event.currentTarget.value)} />
-            <button type="button" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? "Hide password" : "Show password"}>
+            <input
+              name="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="Create a password"
+              autoComplete="new-password"
+              value={password}
+              onChange={(event) => setPassword(event.currentTarget.value)}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </div>

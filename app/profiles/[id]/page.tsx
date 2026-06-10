@@ -5,7 +5,6 @@ import { PublicLayout } from '@/components/layouts/PublicLayout';
 import { ProfileActions } from '@/components/public/ProfileActions';
 import { publicProfileDto } from '@/lib/api/mappers';
 import { getSessionUser } from '@/lib/auth/session';
-import { getDemoProfile, isDemoMode } from '@/lib/demo/server';
 import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
@@ -13,9 +12,6 @@ import { eq } from 'drizzle-orm';
 type PageProps = { params: { id: string } };
 
 async function fetchProfile(id: string) {
-  if (isDemoMode()) {
-    return getDemoProfile(id);
-  }
   const [data] = await db
     .select()
     .from(users)

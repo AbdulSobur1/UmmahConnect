@@ -10,7 +10,7 @@ import { Avatar } from "@/components/Avatar";
 import { ProgressBar, Tag } from "@/components/ui/Common";
 import { apiGet, apiSend } from "@/lib/api/client";
 import { formatPostTime } from "@/lib/utils/time";
-import type { Community, EventListing, Post, User } from "@/lib/mock";
+import type { Community, EventListing, Post, User } from "@/types";
 
 type Prayer = { name: string; time: string; minutes_until: number };
 type Weekly = { count: number; remaining: number; week_start: string };
