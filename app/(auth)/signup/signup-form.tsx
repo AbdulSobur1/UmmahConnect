@@ -1,7 +1,6 @@
 'use client';
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { FormEvent, useMemo, useState } from "react";
 import { signIn } from "next-auth/react";
@@ -48,7 +47,6 @@ function passwordStrength(password: string) {
 }
 
 export default function SignupForm() {
-  const router = useRouter();
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -85,9 +83,9 @@ export default function SignupForm() {
       body: JSON.stringify({ ...body, password, country: "Nigeria" }),
     });
     const json = await response.json() as SignupResponse;
-    setLoading(false);
 
     if (!response.ok || json.error) {
+      setLoading(false);
       setFormError(json.error === "too_many_requests"
         ? "Too many attempts. Try again later."
         : json.error === "An account with this email already exists."
@@ -97,19 +95,19 @@ export default function SignupForm() {
     }
 
     // Auto-sign in after successful registration
-    const signInResult = await signIn("credentials", {
-      email: body.email as string,
-      password,
-      redirect: false,
-    });
-
-    if (signInResult?.error) {
-      // Fallback: redirect to login page if auto-signin fails
-      router.push("/login?signup=success");
-      return;
+    // Loading stays true until signIn resolves — signIn handles the redirect on success
+    try {
+      await signIn("credentials", {
+        email: body.email as string,
+        password,
+        callbackUrl: "/feed",
+      });
+      // signIn redirects on success; this fallback runs only if it doesn't
+      setLoading(false);
+    } catch {
+      setLoading(false);
+      setFormError("Account created but sign-in failed. Please go to the login page.");
     }
-
-    router.push("/feed");
   }
 
   return (

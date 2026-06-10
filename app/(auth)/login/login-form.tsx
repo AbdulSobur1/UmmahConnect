@@ -11,11 +11,6 @@ type LoginResponse = {
   message?: string;
 };
 
-function safeInternalPath(value: string | null) {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) return "/feed";
-  return value;
-}
-
 export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -46,17 +41,18 @@ export default function LoginForm() {
     const result = await signIn("credentials", {
       email,
       password,
+      callbackUrl: "/feed",
       redirect: false,
     });
 
     setLoading(false);
 
     if (result?.error) {
-      setFormError("Invalid email or password.");
+      setFormError("Invalid email or password. Please try again.");
       return;
     }
 
-    router.push(safeInternalPath(searchParams.get("next")));
+    router.push("/feed");
   }
 
   return (
