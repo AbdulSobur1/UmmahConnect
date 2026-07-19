@@ -1,53 +1,95 @@
 import { NextRequest } from "next/server";
+import { createServiceClient } from "@/lib/supabase/service";
 import { notifyUser } from "@/lib/api/notifications";
-import { db } from '@/lib/db';
-import { users, subscriptions, eventListings } from '@/lib/db/schema';
 import { verifyPaystackSignature } from "@/lib/api/paystack";
 import { fail, ok, serverError } from "@/lib/api/response";
-import { eq, and } from 'drizzle-orm';
-export const dynamic = 'force-dynamic'
 
+export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 type PaystackWebhook = {
   event: string;
   data?: {
     customer?: { customer_code?: string };
-    metadata?: { user_id?: string; plan?: string; event_id?: string; payment_type?: string };
+    metadata?: {
+      user_id?: string;
+      plan?: string;
+      event_id?: string;
+      payment_type?: string;
+    };
   };
 };
 
 export async function POST(request: NextRequest) {
   try {
     const rawBody = await request.text();
-    if (!verifyPaystackSignature(rawBody, request.headers.get("x-paystack-signature"))) return fail("invalid_signature", 401);
+    if (!verifyPaystackSignature(rawBody, request.headers.get("x-paystack-signature")))
+      return fail("invalid_signature", 401);
+
     const payload = JSON.parse(rawBody) as PaystackWebhook;
     const userId = payload.data?.metadata?.user_id;
+    const supabase = createServiceClient();
+
     if (payload.event === "charge.success" && userId) {
       if (payload.data?.metadata?.payment_type === "event_sponsor" && payload.data.metadata.event_id) {
-        await db.update(eventListings).set({ isActive: true }).where(eq(eventListings.id, payload.data.metadata.event_id));
+        await supabase
+          .from("event_listings")
+          .update({ is_active: true })
+          .eq("id", payload.data.metadata.event_id);
       } else {
-        await db.update(users).set({ plan: "pro" }).where(eq(users.id, userId));
-        const subscription = { userId, plan: "pro", paystackCustomerCode: payload.data?.customer?.customer_code, status: "active" };
-        const [existing] = await db.select({ id: subscriptions.id }).from(subscriptions).where(and(eq(subscriptions.userId, userId), eq(subscriptions.status, "active"))).limit(1);
+        await supabase.from("users").update({ plan: "pro" }).eq("id", userId);
+
+        const { data: existing } = await supabase
+          .from("subscriptions")
+          .select("id")
+          .eq("user_id", userId)
+          .eq("status", "active")
+          .maybeSingle();
+
+        const subscription = {
+          user_id: userId,
+          plan: "pro",
+          paystack_customer_code: payload.data?.customer?.customer_code,
+          status: "active",
+        };
+
         if (existing?.id) {
-          await db.update(subscriptions).set(subscription).where(eq(subscriptions.id, existing.id));
+          await supabase
+            .from("subscriptions")
+            .update(subscription)
+            .eq("id", existing.id);
         } else {
-          await db.insert(subscriptions).values(subscription);
+          await supabase.from("subscriptions").insert(subscription);
         }
       }
     }
+
     if (payload.event === "subscription.disable" && userId) {
-      await db.update(subscriptions).set({ status: "cancelled" }).where(and(eq(subscriptions.userId, userId), eq(subscriptions.status, "active")));
-      await db.update(users).set({ plan: "free" }).where(eq(users.id, userId));
+      await supabase
+        .from("subscriptions")
+        .update({ status: "cancelled" })
+        .eq("user_id", userId)
+        .eq("status", "active");
+
+      await supabase.from("users").update({ plan: "free" }).eq("id", userId);
     }
+
     if (payload.event === "invoice.payment_failed" && userId) {
-      await db.update(subscriptions).set({ status: "at_risk" }).where(and(eq(subscriptions.userId, userId), eq(subscriptions.status, "active")));
-      await notifyUser({ userId, type: "payment", content: "Your Pro payment failed. Please update your payment method." });
+      await supabase
+        .from("subscriptions")
+        .update({ status: "at_risk" })
+        .eq("user_id", userId)
+        .eq("status", "active");
+
+      await notifyUser({
+        userId,
+        type: "payment",
+        content: "Your Pro payment failed. Please update your payment method.",
+      });
     }
+
     return ok({ received: true });
   } catch {
     return serverError();
   }
 }
-

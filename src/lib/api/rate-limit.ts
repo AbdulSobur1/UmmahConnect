@@ -1,6 +1,4 @@
-import { db } from '@/lib/db';
-import { rateLimits } from '@/lib/db/schema';
-import { eq, and, sql } from 'drizzle-orm';
+import { createServiceClient } from '@/lib/supabase/service';
 
 type MemoryBucket = {
   count: number;
@@ -48,38 +46,35 @@ export async function checkRateLimit(input: {
   const now = new Date();
 
   try {
-    const [existing] = await db
-      .select()
-      .from(rateLimits)
-      .where(
-        and(
-          eq(rateLimits.identifier, identifier),
-          eq(rateLimits.action, action)
-        )
-      )
-      .limit(1);
+    const supabase = createServiceClient();
+    const { data: existing } = await supabase
+      .from('rate_limits')
+      .select('*')
+      .eq('identifier', identifier)
+      .eq('action', action)
+      .maybeSingle();
 
-    const windowStart = existing?.windowStart ? new Date(existing.windowStart) : null;
+    const windowStart = existing?.window_start ? new Date(existing.window_start) : null;
     const expired = !windowStart || now.getTime() - windowStart.getTime() >= windowMs;
     const nextCount = expired ? 1 : (existing?.count ?? 0) + 1;
 
     if (!expired && nextCount > limit) return tooMany();
 
-    await db
-      .insert(rateLimits)
-      .values({
+    const { error } = await supabase.from('rate_limits').upsert(
+      {
         identifier,
         action,
         count: nextCount,
-        windowStart: expired ? now : (existing?.windowStart ?? now),
-      })
-      .onConflictDoUpdate({
-        target: [rateLimits.identifier, rateLimits.action, rateLimits.windowStart],
-        set: { count: nextCount },
-      });
+        window_start: expired ? now.toISOString() : existing?.window_start ?? now.toISOString(),
+      },
+      { onConflict: 'identifier, action, window_start' },
+    );
+
+    if (error) throw error;
 
     return { limited: false as const, count: nextCount };
   } catch {
     return checkMemoryLimit(identifier, action, limit, windowMs);
   }
 }
+

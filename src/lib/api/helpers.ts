@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { createClient } from '@/lib/supabase/server';
 import { ZodSchema } from 'zod';
 
 export function ok<T>(data: T, status = 200) {
@@ -22,11 +22,17 @@ export function getClientIp(req: NextRequest): string {
 }
 
 export async function requireAuth() {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const supabase = await createClient();
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error || !user?.id) {
     throw { status: 401, message: 'Authentication required' };
   }
-  return { userId: session.user.id, plan: (session.user as { plan?: string }).plan ?? 'free' };
+  const { data: profile } = await supabase
+    .from('users')
+    .select('plan')
+    .eq('id', user.id)
+    .single();
+  return { userId: user.id, plan: (profile as { plan?: string })?.plan ?? 'free' };
 }
 
 export async function parseBody<T>(req: NextRequest, schema: ZodSchema<T>): Promise<T> {

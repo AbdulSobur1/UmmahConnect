@@ -1,6 +1,6 @@
 This is UmmahConnect — a Next.js 14 App Router project for Muslim professionals in Nigeria.
 
-Stack: Next.js 14 App Router, Supabase SSR, React Query, TypeScript strict mode, Tailwind CSS, Zod, Lucide React.
+Stack: Next.js 14 App Router, Auth.js, React Query, TypeScript strict mode, Tailwind CSS, Zod, Lucide React.
 
 Design system:
 - Primary: #1A6B5C (Forest Teal)
@@ -18,6 +18,6 @@ Rules:
 - Never use default Tailwind blue or grey
 - All API routes must use withHandler from src/lib/api/helpers.ts
 - All inputs validated with Zod from src/lib/validation.ts
-- supabase.auth.getUser() always — never getSession() alone
+- Use auth() server-side from @/lib/auth, useSession() client-side from next-auth/react
 - Nigeria is the only country in Phase 1
 - All colours from the design system above only

@@ -1,10 +1,14 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 
 export async function POST() {
-  const response = NextResponse.json({ data: { success: true }, error: null, status: 200 });
-  response.cookies.delete('next-auth.session-token');
-  response.cookies.delete('__Secure-next-auth.session-token');
-  response.cookies.delete('next-auth.csrf-token');
-  response.cookies.delete('__Host-next-auth.csrf-token');
-  return response;
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+
+  // Supabase's signOut already clears cookies; this response is just a confirmation
+  return NextResponse.json({
+    data: { success: true },
+    error: null,
+    status: 200,
+  });
 }

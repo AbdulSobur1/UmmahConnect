@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
-import { signOut } from "next-auth/react";
+import { createClient } from "@/lib/supabase/client";
 
 export default function UpdatePasswordPage() {
   const router = useRouter();
@@ -13,12 +13,22 @@ export default function UpdatePasswordPage() {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     const password = String(form.get("password") ?? "");
-    // Password update via Auth.js will be wired in a future session
+
     if (password.length < 8) {
       setError("Password must be at least 8 characters.");
       return;
     }
-    await signOut({ redirect: false });
+
+    // Update password via Supabase Auth
+    const supabase = createClient();
+    const { error } = await supabase.auth.updateUser({ password });
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    await supabase.auth.signOut();
     router.push("/login");
   }
 

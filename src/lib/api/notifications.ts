@@ -1,6 +1,4 @@
-import { db } from '@/lib/db';
-import { notifications, users } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { createServiceClient } from '@/lib/supabase/service';
 
 export async function notifyUser(input: {
   userId: string;
@@ -8,39 +6,49 @@ export async function notifyUser(input: {
   content: string;
   referenceId?: string;
 }) {
-  await db.insert(notifications).values({
-    userId: input.userId,
+  const supabase = createServiceClient();
+  const { error } = await supabase.from('notifications').insert({
+    user_id: input.userId,
     type: input.type,
     content: input.content,
-    referenceId: input.referenceId ?? null,
+    reference_id: input.referenceId ?? null,
   });
+  if (error) console.error('[notifyUser]', error);
 }
 
 export async function notifyUsersByIndustry(industry: string, content: string, referenceId?: string) {
-  const userList = await db
-    .select({ id: users.id })
-    .from(users)
-    .where(eq(users.industry, industry));
-  if (userList.length === 0) return;
-  await db.insert(notifications).values(
-    userList.map((u) => ({
-      userId: u.id,
+  const supabase = createServiceClient();
+  const { data: userList } = await supabase
+    .from('users')
+    .select('id')
+    .eq('industry', industry);
+  if (!userList || userList.length === 0) return;
+  const { error } = await supabase.from('notifications').insert(
+    userList.map((u: any) => ({
+      user_id: u.id,
       type: 'job',
       content,
-      referenceId: referenceId ?? null,
+      reference_id: referenceId ?? null,
     }))
   );
+  if (error) console.error('[notifyUsersByIndustry]', error);
 }
 
 export async function notifyAllUsers(content: string, referenceId?: string) {
-  const userList = await db.select({ id: users.id }).from(users);
-  if (userList.length === 0) return;
-  await db.insert(notifications).values(
-    userList.map((u) => ({
-      userId: u.id,
-      type: 'sponsored',
-      content,
-      referenceId: referenceId ?? null,
-    }))
-  );
+  const supabase = createServiceClient();
+  const { data: userList } = await supabase.from('users').select('id');
+  if (!userList || userList.length === 0) return;
+  const chunkSize = 100;
+  for (let i = 0; i < userList.length; i += chunkSize) {
+    const chunk = userList.slice(i, i + chunkSize);
+    const { error } = await supabase.from('notifications').insert(
+      chunk.map((u: any) => ({
+        user_id: u.id,
+        type: 'sponsored',
+        content,
+        reference_id: referenceId ?? null,
+      }))
+    );
+    if (error) console.error('[notifyAllUsers]', error);
+  }
 }

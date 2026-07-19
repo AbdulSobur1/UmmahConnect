@@ -1,6 +1,6 @@
-import { NextRequest } from 'next/server';
-import { signIn } from '@/lib/auth';
-import { ok, err } from '@/lib/api/helpers';
+import { NextRequest } from "next/server";
+import { createClient } from "@/lib/supabase/server";
+import { ok, err } from "@/lib/api/helpers";
 
 export async function POST(request: NextRequest) {
   try {
@@ -8,22 +8,21 @@ export async function POST(request: NextRequest) {
     const { email, password } = body || {};
 
     if (!email || !password) {
-      return err('Invalid email or password.', 401);
+      return err("Invalid email or password.", 401);
     }
 
-    const result = await signIn('credentials', {
+    const supabase = await createClient();
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
-      redirect: false,
     });
 
-    if (!result || result.error) {
-      return err('Invalid email or password.', 401);
+    if (error) {
+      return err("Invalid email or password.", 401);
     }
 
     return ok({ success: true });
   } catch {
-    return err('Invalid email or password.', 401);
+    return err("Invalid email or password.", 401);
   }
 }
-

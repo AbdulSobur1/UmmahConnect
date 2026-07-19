@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { FormEvent, useState } from "react";
-import { signIn } from "next-auth/react";
+import { createClient } from "@/lib/supabase/client";
 
 type LoginResponse = {
   error: string | null;
@@ -38,21 +38,22 @@ export default function LoginForm() {
       return;
     }
 
-    const result = await signIn("credentials", {
+    // Sign in with Supabase Auth
+    const supabase = createClient();
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
-      callbackUrl: "/feed",
-      redirect: false,
     });
 
     setLoading(false);
 
-    if (result?.error) {
+    if (error) {
       setFormError("Invalid email or password. Please try again.");
       return;
     }
 
     router.push("/feed");
+    router.refresh();
   }
 
   return (

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { FormEvent, useMemo, useState } from "react";
-import { signIn } from "next-auth/react";
+import { createClient } from "@/lib/supabase/client";
 
 const industries = [
   "Tech & Software",
@@ -95,15 +95,13 @@ export default function SignupForm() {
     }
 
     // Auto-sign in after successful registration
-    // Loading stays true until signIn resolves — signIn handles the redirect on success
     try {
-      await signIn("credentials", {
+      const supabase = createClient();
+      await supabase.auth.signInWithPassword({
         email: body.email as string,
         password,
-        callbackUrl: "/feed",
       });
-      // signIn redirects on success; this fallback runs only if it doesn't
-      setLoading(false);
+      window.location.href = "/feed";
     } catch {
       setLoading(false);
       setFormError("Account created but sign-in failed. Please go to the login page.");

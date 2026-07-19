@@ -1,39 +1,67 @@
-import { NextRequest } from 'next/server';
-import { db } from '@/lib/db';
-import { users } from '@/lib/db/schema';
-import { signupSchema } from '@/lib/validation';
-import { withHandler, parseBody, ok } from '@/lib/api/helpers';
-import bcrypt from 'bcryptjs';
-import { eq } from 'drizzle-orm';
+import { NextRequest } from "next/server";
+import { createClient } from "@/lib/supabase/server";
+import { signupSchema } from "@/lib/validation";
+import { withHandler, parseBody, ok } from "@/lib/api/helpers";
+import bcrypt from "bcryptjs";
 
 export const POST = withHandler(async (req: NextRequest) => {
   const body = await parseBody(req, signupSchema);
 
-  const existing = await db
-    .select({ id: users.id })
-    .from(users)
-    .where(eq(users.email, body.email))
-    .limit(1);
+  const supabase = await createClient();
 
-  if (existing.length > 0) {
-    throw { status: 409, message: 'An account with this email already exists.' };
+  // Check if email already exists
+  const { data: existing } = await supabase
+    .from("users")
+    .select("id")
+    .eq("email", body.email)
+    .maybeSingle();
+
+  if (existing) {
+    throw { status: 409, message: "An account with this email already exists." };
   }
+
+  // Sign up with Supabase Auth
+  const { data: authData, error: authError } = await supabase.auth.signUp({
+    email: body.email,
+    password: body.password,
+    options: {
+      data: {
+        full_name: body.full_name,
+        industry: body.industry,
+        career_stage: body.career_stage,
+        city: body.city,
+        country: body.country,
+      },
+    },
+  });
+
+  if (authError || !authData.user) {
+    throw { status: 400, message: authError?.message ?? "Signup failed" };
+  }
+
+  const industry =
+    body.industry === "Other" && body.industry_custom
+      ? body.industry_custom
+      : body.industry;
 
   const hashedPassword = await bcrypt.hash(body.password, 12);
 
-  const industry = body.industry === 'Other' && body.industry_custom ? body.industry_custom : body.industry;
-
-  const [user] = await db.insert(users).values({
-    fullName: body.full_name,
+  // Create user in public.users table
+  const { error: dbError } = await supabase.from("users").insert({
+    id: authData.user.id,
+    full_name: body.full_name,
     email: body.email,
     password: hashedPassword,
     industry,
-    careerStage: body.career_stage,
+    career_stage: body.career_stage,
     city: body.city,
-    country: 'Nigeria',
+    country: "Nigeria",
     plan: body.plan,
-  }).returning({ id: users.id, email: users.email });
+  });
 
-  return ok({ id: user.id, email: user.email }, 201);
+  if (dbError) {
+    throw { status: 400, message: dbError.message };
+  }
+
+  return ok({ id: authData.user.id, email: authData.user.email }, 201);
 });
-

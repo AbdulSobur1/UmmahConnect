@@ -1,14 +1,12 @@
-import Link from 'next/link';
-import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
-import { PublicLayout } from '@/components/layouts/PublicLayout';
-import { formatPostTime } from '@/lib/utils/time';
-import { PostPublicClient } from '@/components/public/PostPublicClient';
-import { postDto, publicProfileDto } from '@/lib/api/mappers';
-import { getSessionUser } from '@/lib/auth/session';
-import { db } from '@/lib/db';
-import { posts, users, comments } from '@/lib/db/schema';
-import { eq, asc } from 'drizzle-orm';
+import Link from "next/link";
+import { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { PublicLayout } from "@/components/layouts/PublicLayout";
+import { formatPostTime } from "@/lib/utils/time";
+import { PostPublicClient } from "@/components/public/PostPublicClient";
+import { postDto, publicProfileDto } from "@/lib/api/mappers";
+import { getSessionUser } from "@/lib/auth/session";
+import { createClient } from "@/lib/supabase/server";
 
 type PageProps = { params: { id: string } };
 
@@ -22,25 +20,28 @@ type PostWithComments = ReturnType<typeof postDto> & {
 };
 
 async function fetchPost(id: string): Promise<PostWithComments | null> {
-  const [post] = await db
-    .select()
-    .from(posts)
-    .leftJoin(users, eq(posts.userId, users.id))
-    .where(eq(posts.id, id))
-    .limit(1);
+  const supabase = await createClient();
+
+  const { data: post } = await supabase
+    .from("posts")
+    .select("*, users:user_id(*)")
+    .eq("id", id)
+    .single();
+
   if (!post) return null;
-  const commentRows = await db
-    .select()
-    .from(comments)
-    .leftJoin(users, eq(comments.userId, users.id))
-    .where(eq(comments.postId, id))
-    .orderBy(asc(comments.createdAt));
+
+  const { data: commentRows } = await supabase
+    .from("comments")
+    .select("*, users:user_id(*)")
+    .eq("post_id", id)
+    .order("created_at", { ascending: true });
+
   return {
-    ...postDto({ ...post.posts, users: post.users } as any),
+    ...postDto({ ...post, users: post.users } as any),
     comments: (commentRows ?? []).map((row: any) => ({
-      id: row.comments.id,
-      content: row.comments.content,
-      created_at: row.comments.createdAt ?? '',
+      id: row.id,
+      content: row.content,
+      created_at: row.created_at ?? "",
       user: row.users ? publicProfileDto(row.users) : null,
     })),
   };
@@ -48,23 +49,27 @@ async function fetchPost(id: string): Promise<PostWithComments | null> {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const post = await fetchPost(params.id);
-  if (!post) return { title: 'Post not found' };
-  const title = post.content.slice(0, 60) + (post.content.length > 60 ? '...' : '');
-  const authorName = post.user?.full_name ?? 'Ummah Connect member';
+  if (!post) return { title: "Post not found" };
+  const title =
+    post.content.slice(0, 60) + (post.content.length > 60 ? "..." : "");
+  const authorName = post.user?.full_name ?? "Ummah Connect member";
   return {
     title,
     description: post.content,
     openGraph: {
       title,
       description: post.content,
-      type: 'article',
+      type: "article",
       authors: [authorName],
     },
   };
 }
 
 export default async function PublicPostPage({ params }: PageProps) {
-  const [post, user] = await Promise.all([fetchPost(params.id), getSessionUser()]);
+  const [post, user] = await Promise.all([
+    fetchPost(params.id),
+    getSessionUser(),
+  ]);
   if (!post) notFound();
 
   return (
@@ -83,10 +88,16 @@ export default async function PublicPostPage({ params }: PageProps) {
               ) : (
                 <span>Member</span>
               )}
-              <small className="muted">{formatPostTime(post.created_at)}</small>
+              <small className="muted">
+                {formatPostTime(post.created_at)}
+              </small>
             </div>
             <p className="public-text">{post.content}</p>
-            <PostPublicClient postId={post.id} initialLikes={post.likes_count} user={user} />
+            <PostPublicClient
+              postId={post.id}
+              initialLikes={post.likes_count}
+              user={user}
+            />
             <section className="public-section">
               <h2 className="font-display public-subtitle">
                 Comments ({post.comments.length})
@@ -96,18 +107,25 @@ export default async function PublicPostPage({ params }: PageProps) {
                   <div className="card public-comment-card" key={comment.id}>
                     <div className="row space-between">
                       {comment.user ? (
-                        <Link href={`/profiles/${comment.user.id}`} className="public-link">
+                        <Link
+                          href={`/profiles/${comment.user.id}`}
+                          className="public-link"
+                        >
                           {comment.user.full_name}
                         </Link>
                       ) : (
                         <span>Member</span>
                       )}
-                      <small className="muted">{formatPostTime(comment.created_at)}</small>
+                      <small className="muted">
+                        {formatPostTime(comment.created_at)}
+                      </small>
                     </div>
                     <p className="public-copy">{comment.content}</p>
                   </div>
                 ))}
-                {post.comments.length === 0 ? <p className="muted">No comments yet.</p> : null}
+                {post.comments.length === 0 ? (
+                  <p className="muted">No comments yet.</p>
+                ) : null}
               </div>
             </section>
           </article>
