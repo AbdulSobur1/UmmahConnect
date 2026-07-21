@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Bell, Crown, Eye, KeyRound, Lock, Shield } from "lucide-react";
 import { FormEvent, useState } from "react";
 import { Modal } from "@/components/Modal";
+import { PageTransition } from "@/components/ui/PageTransition";
 import { apiGet, apiSend } from "@/lib/api/client";
 import type { User } from "@/types";
 
@@ -31,7 +32,7 @@ export function SettingsPage() {
   }
 
   return (
-    <div>
+    <PageTransition>
       <div className="screen-title"><div><h1>Settings</h1><p className="muted">Control profile visibility, account details, plan access, and alerts.</p></div></div>
       <div className="row" style={{ flexWrap: "wrap", marginBottom: 18 }}>{tabs.map((tab) => <button key={tab} className={`btn ${activeTab === tab ? "btn-primary" : "btn-ghost"}`} onClick={() => setActiveTab(tab)}>{tab}</button>)}</div>
       <section className="card" style={{ padding: 22 }}>
@@ -71,6 +72,6 @@ export function SettingsPage() {
           </div>
         </Modal>
       ) : null}
-    </div>
+    </PageTransition>
   );
 }

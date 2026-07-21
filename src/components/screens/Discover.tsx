@@ -5,6 +5,7 @@ import { UserPlus, Globe } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Avatar } from "@/components/Avatar";
 import { ErrorState } from "@/components/ui/Common";
+import { PageTransition } from "@/components/ui/PageTransition";
 import { apiGet, apiSend } from "@/lib/api/client";
 import type { Community, EventListing, Job, User } from "@/types";
 
@@ -55,7 +56,8 @@ export function Discover() {
   }
 
   return (
-    <div style={{ display: "grid", gap: 24 }}>
+    <PageTransition>
+      <div style={{ display: "grid", gap: 24 }}>
       {/* SECTION 1 — Search bar */}
       <div
         style={{
@@ -337,5 +339,6 @@ export function Discover() {
           </div>
         )}
     </div>
+    </PageTransition>
   );
 }

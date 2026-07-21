@@ -3,6 +3,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { ChevronDown, Crown, LockKeyhole, Sparkles, UserRound } from "lucide-react";
 import { useState } from "react";
+import { PageTransition, Stagger } from "@/components/ui/PageTransition";
 import { apiGet, apiSend } from "@/lib/api/client";
 import type { MentorProfile, User } from "@/types";
 
@@ -24,7 +25,7 @@ export function Mentorship() {
   const profileTags = currentUser ? [currentUser.industry, currentUser.career_stage, currentUser.city].filter(Boolean) : [];
 
   return (
-    <div>
+    <PageTransition>
       <div className="screen-title"><div><h1>Mentorship</h1><p className="muted">Match with mentors by industry, stage, language, location, and values.</p></div></div>
 
       {profileTags.length > 0 ? (
@@ -43,7 +44,7 @@ export function Mentorship() {
 
       {requestMentorship.error ? <div className="card" style={{ padding: 18, marginBottom: 18 }}><strong>Request not sent.</strong><p className="muted">Please try again or check your account access.</p></div> : null}
 
-      <div className="grid three-col">
+      <Stagger as="section" className="grid three-col" style={{ gap: "var(--item-gap)" }}>
         {list.length > 0 ? list.map((mentor) => {
           const isOpen = expanded === mentor.user_id;
           const requested = requestedMentorId === mentor.user_id;
@@ -63,7 +64,7 @@ export function Mentorship() {
             <p className="muted" style={{ margin: "6px 0 0" }}>Mentors will appear here based on your profile match data.</p>
           </div>
         )}
-      </div>
-    </div>
+      </Stagger>
+    </PageTransition>
   );
 }

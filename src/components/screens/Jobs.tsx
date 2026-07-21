@@ -7,6 +7,7 @@ import { HalalBadge } from "@/components/HalalBadge";
 import { Modal } from "@/components/Modal";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { ErrorState, IconBox, Tag } from "@/components/ui/Common";
+import { PageTransition } from "@/components/ui/PageTransition";
 import { apiGet, apiSend } from "@/lib/api/client";
 import { formatPostTime } from "@/lib/utils/time";
 import type { Job, User } from "@/types";
@@ -71,7 +72,7 @@ export function Jobs() {
   if (jobs.error) return <ErrorState onRetry={() => void jobs.refetch()} title="Jobs did not load" />;
 
   return (
-    <div>
+    <PageTransition>
       {/* Sticky header */}
       <div
         style={{
@@ -417,6 +418,6 @@ export function Jobs() {
       ) : null}
 
       {showUpgrade ? <UpgradeModal onClose={() => setShowUpgrade(false)} /> : null}
-    </div>
+    </PageTransition>
   );
 }

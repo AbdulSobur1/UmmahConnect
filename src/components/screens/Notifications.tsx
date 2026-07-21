@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bell, CheckCheck } from "lucide-react";
 import { useEffect } from "react";
+import { PageTransition } from "@/components/ui/PageTransition";
 import { apiGet, apiSend } from "@/lib/api/client";
 import { formatPostTime } from "@/lib/utils/time";
 import type { Notification, User } from "@/types";
@@ -24,7 +25,7 @@ export function Notifications() {
   if (notifications.error) return <div className="card" style={{ padding: 24 }}><h2>Notifications did not load</h2><button className="btn btn-primary" onClick={() => void notifications.refetch()}>Retry</button></div>;
 
   return (
-    <div>
+    <PageTransition>
       <div className="screen-title"><div><h1>Notifications</h1><p className="muted">Connection, message, mentorship, job, and sponsored event updates.</p></div><button className="btn btn-primary" onClick={() => markAll.mutate()}><CheckCheck size={17} /> Mark all as read</button></div>
       {acceptConnection.error ? <div className="card" style={{ padding: 14, marginBottom: 14 }}><strong>Connection was not accepted.</strong><p className="muted">This notification may point to an older request.</p></div> : null}
       <div className="grid">
@@ -35,6 +36,6 @@ export function Notifications() {
           </article>
         ))}
       </div>
-    </div>
+    </PageTransition>
   );
 }

@@ -480,6 +480,25 @@ button { cursor: pointer; }
 .avatar-dropdown-item:hover { background:var(--color-bg-hover); }
 
 /* Bottom navigation (mobile) */
+/* ─── Micro-interactions ─── */
+
+/* Button press effect */
+.btn:active,
+button:active:not(.btn-link):not(.avatar-dropdown-item):not(.bottom-nav-item):not(.more-sheet-item) {
+  transform: scale(0.97) !important;
+}
+
+/* Focus ring for keyboard navigation */
+*:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Interactive card cursor */
+[role="button"], .card-hover, .clickable {
+  cursor: pointer;
+}
+
 .bottom-nav { display:none; }
 
 /* More sheet (mobile) */

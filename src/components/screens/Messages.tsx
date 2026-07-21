@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Send } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Avatar } from "@/components/Avatar";
+import { PageTransition } from "@/components/ui/PageTransition";
 import { apiGet, apiSend } from "@/lib/api/client";
 import { formatMessageTime } from "@/lib/utils/time";
 import type { Message, User } from "@/types";
@@ -43,7 +44,7 @@ export function Messages() {
   if (users.isLoading) return <div className="skeleton" />;
 
   return (
-    <div>
+    <PageTransition>
       <div className="screen-title" style={{ marginBottom: 16 }}>
         <div>
           <h1>Messages</h1>
@@ -244,6 +245,6 @@ export function Messages() {
           </form>
         </section>
       </div>
-    </div>
+    </PageTransition>
   );
 }
