@@ -1,9 +1,13 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Send } from "lucide-react";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { MessageCircle, Send } from "lucide-react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Avatar } from "@/components/Avatar";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { apiGet, apiSend } from "@/lib/api/client";
 import { formatMessageTime } from "@/lib/utils/time";
@@ -20,6 +24,7 @@ export function Messages() {
     queryFn: () => apiGet<Message[]>(`/api/messages/${activeUserId}`),
     enabled: Boolean(activeUserId),
   });
+  const scrollRef = useRef<HTMLDivElement>(null);
   const send = useMutation({
     mutationFn: (content: string) => apiSend<{ message: Message; weekly_count: number }>(`/api/messages/${activeUserId}`, "POST", { content }),
     onSuccess: () => {
@@ -28,11 +33,28 @@ export function Messages() {
     },
   });
 
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [thread.data]);
+
   useEffect(() => {
     if (!activeUserId && users.data?.[0]) setActiveUserId(users.data[0].id);
   }, [activeUserId, users.data]);
 
   const active = useMemo(() => users.data?.find((user) => user.id === activeUserId), [activeUserId, users.data]);
+
+  // Get the last message for each user to show a preview and timestamp
+  const lastMessages = useMemo(() => {
+    const map = new Map<string, Message>();
+    (thread.data ?? []).forEach((msg) => {
+      const otherId = msg.sender_id === me.data?.id ? msg.receiver_id : msg.sender_id;
+      if (otherId) map.set(otherId, msg);
+    });
+    return map;
+  }, [thread.data, me.data?.id]);
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -53,17 +75,25 @@ export function Messages() {
         <span className="pill">{weekly.data?.count ?? 0} of 10 used</span>
       </div>
       {send.error ? (
-        <div className="card" style={{ padding: 12, marginBottom: 12 }}>
+        <Card padding="sm" style={{ marginBottom: 12 }}>
           <strong style={{ fontSize: 14 }}>Message not sent.</strong>
           <p className="muted" style={{ fontSize: 13, margin: "4px 0 0" }}>Weekly limits or network issues may be blocking this send.</p>
-        </div>
+        </Card>
       ) : null}
       <div className="grid two-col" style={{ gap: 14 }}>
         {/* Conversation list */}
-        <aside className="card" style={{ padding: 0, overflow: "hidden" }}>
-          {(users.data ?? []).map((user) => {
+        <Card padding="none" style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}>
+          {(users.data ?? []).length === 0 ? (
+            <EmptyState
+              icon={<MessageCircle size={24} />}
+              title="No conversations"
+              description="Start connecting with other professionals to begin messaging."
+              variant="compact"
+            />
+          ) : (users.data ?? []).map((user) => {
             const isActive = user.id === activeUserId;
             const hasUnread = false; // Simplified - would come from actual data
+            const lastMsg = lastMessages.get(user.id);
             return (
               <button
                 key={user.id}
@@ -80,10 +110,13 @@ export function Messages() {
                   display: "flex",
                   alignItems: "center",
                   gap: 10,
-                  borderBottom: "1px solid var(--line)",
+                  borderBottom: "1px solid var(--color-line)",
                   position: "relative",
                   minHeight: 44,
+                  transition: "background var(--duration-fast) ease",
                 }}
+                onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = "rgba(255,255,255,0.03)"; }}
+                onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
               >
                 <div style={{ position: "relative" }}>
                   <Avatar name={user.full_name} size={40} />
@@ -104,30 +137,42 @@ export function Messages() {
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <strong style={{ fontSize: 15, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                       {user.full_name}
+                      {hasUnread && (
+                        <span style={{
+                          display: "inline-block",
+                          width: 6,
+                          height: 6,
+                          borderRadius: "50%",
+                          background: "var(--color-primary)",
+                          marginLeft: 6,
+                          verticalAlign: "middle",
+                        }} />
+                      )}
                     </strong>
-                    <span style={{ fontSize: 11, color: "var(--color-muted-light)", flexShrink: 0, marginLeft: 4 }}>
-                      2h
-                    </span>
+                    {lastMsg && (
+                      <span style={{ fontSize: 11, color: "var(--color-text-muted)", flexShrink: 0, marginLeft: 4 }}>
+                        {formatMessageTime(lastMsg.created_at)}
+                      </span>
+                    )}
                   </div>
                   <p style={{
                     margin: "2px 0 0",
                     fontSize: 13,
-                    color: "var(--color-muted-light)",
+                    color: "var(--color-text-muted)",
                     whiteSpace: "nowrap",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
                   }}>
-                    {user.industry}
+                    {lastMsg ? lastMsg.content.slice(0, 60) : user.industry}
                   </p>
                 </div>
               </button>
             );
           })}
-        </aside>
+        </Card>
 
         {/* Active conversation thread */}
-        <section className="card" style={{
-          padding: 16,
+        <Card padding="md" style={{
           minHeight: 560,
           display: "flex",
           flexDirection: "column",
@@ -137,7 +182,7 @@ export function Messages() {
             display: "flex",
             alignItems: "center",
             gap: 10,
-            borderBottom: "1px solid var(--line)",
+            borderBottom: "1px solid var(--color-line)",
             paddingBottom: 12,
           }}>
             <Avatar name={active?.full_name ?? "User"} size={36} />
@@ -150,52 +195,80 @@ export function Messages() {
           </div>
 
           {/* Messages */}
-          <div style={{
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "flex-end",
-            padding: "16px 0",
-            gap: 8,
-          }}>
+          <div
+            ref={scrollRef}
+            style={{
+              flex: 1,
+              overflowY: "auto",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "flex-end",
+              padding: "16px 0",
+              gap: 8,
+            }}
+          >
             {(thread.data ?? []).length === 0 ? (
-              <div style={{ textAlign: "center", padding: 24 }}>
-                <p className="muted" style={{ fontSize: 14 }}>No messages yet. Start the conversation.</p>
-              </div>
+              <EmptyState
+                icon={<MessageCircle size={24} />}
+                title="No messages yet"
+                description="Send a message to start the conversation."
+                variant="compact"
+              />
             ) : (
-              (thread.data ?? []).map((message) => {
+              (thread.data ?? []).map((message, idx) => {
                 const mine = message.sender_id === me.data?.id;
+                const prevMessage = idx > 0 ? (thread.data ?? [])[idx - 1] : null;
+                const showDateHeader = prevMessage
+                  ? new Date(message.created_at).toDateString() !== new Date(prevMessage.created_at).toDateString()
+                  : false;
                 return (
-                  <div
-                    key={message.id}
-                    style={{
-                      display: "flex",
-                      justifyContent: mine ? "flex-end" : "flex-start",
-                      flexDirection: "column",
-                      alignItems: mine ? "flex-end" : "flex-start",
-                      maxWidth: "75%",
-                      alignSelf: mine ? "flex-end" : "flex-start",
-                    }}
-                  >
-                    <div style={{
-                      borderRadius: 12,
-                      padding: "8px 14px",
-                      background: mine ? "#1A6B5C" : "rgba(255,255,255,0.06)",
-                      color: mine ? "#FAF7F2" : "#fff",
-                      fontSize: 14,
-                      lineHeight: 1.5,
-                      wordBreak: "break-word",
-                    }}>
-                      {message.content}
+                  <div key={message.id}>
+                    {showDateHeader && (
+                      <div style={{
+                        textAlign: "center",
+                        padding: "12px 0 4px",
+                        fontSize: 11,
+                        color: "var(--color-text-muted)",
+                        fontWeight: 600,
+                      }}>
+                        {new Date(message.created_at).toLocaleDateString(undefined, {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
+                      </div>
+                    )}
+                    <div
+                      className="animate-fade-in-up"
+                      style={{
+                        display: "flex",
+                        justifyContent: mine ? "flex-end" : "flex-start",
+                        flexDirection: "column",
+                        alignItems: mine ? "flex-end" : "flex-start",
+                        maxWidth: "75%",
+                        alignSelf: mine ? "flex-end" : "flex-start",
+                      }}
+                    >
+                      <div style={{
+                        borderRadius: 12,
+                        padding: "8px 14px",
+                        background: mine ? "var(--color-primary)" : "rgba(255,255,255,0.06)",
+                        color: mine ? "var(--color-text-primary)" : "#fff",
+                        fontSize: 14,
+                        lineHeight: 1.5,
+                        wordBreak: "break-word",
+                      }}>
+                        {message.content}
+                      </div>
+                      <span style={{
+                        fontSize: 11,
+                        color: "var(--color-text-muted)",
+                        marginTop: 3,
+                        padding: "0 4px",
+                      }}>
+                        {formatMessageTime(message.created_at)}
+                      </span>
                     </div>
-                    <span style={{
-                      fontSize: 11,
-                      color: "var(--color-muted-light)",
-                      marginTop: 3,
-                      padding: "0 4px",
-                    }}>
-                      {formatMessageTime(message.created_at)}
-                    </span>
                   </div>
                 );
               })
@@ -209,41 +282,27 @@ export function Messages() {
               display: "flex",
               alignItems: "center",
               gap: 8,
-              borderTop: "1px solid var(--line)",
+              borderTop: "1px solid var(--color-line)",
               paddingTop: 12,
             }}
           >
-            <input
-              className="input"
+            <Input
               name="content"
               placeholder="Write a message..."
-              style={{ flex: 1, minHeight: 44 }}
+              style={{ flex: 1 }}
             />
-            <button
+            <Button
               type="submit"
               disabled={send.isPending || !activeUserId}
+              icon={<Send size={20} />}
+              loading={send.isPending}
               aria-label="Send message"
-              style={{
-                width: 48,
-                height: 48,
-                borderRadius: "50%",
-                border: 0,
-                background: "var(--color-primary)",
-                color: "#fff",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-                flexShrink: 0,
-                transition: "background 160ms ease",
-              }}
-              onMouseOver={(e) => e.currentTarget.style.background = "#155a4d"}
-              onMouseOut={(e) => e.currentTarget.style.background = "var(--color-primary)"}
+              style={{ width: 48, height: 48, borderRadius: "50%", padding: 0, minHeight: 48 }}
             >
-              <Send size={20} />
-            </button>
+              <></>
+            </Button>
           </form>
-        </section>
+        </Card>
       </div>
     </PageTransition>
   );

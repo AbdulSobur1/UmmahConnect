@@ -2,9 +2,12 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
-import { Bell, Crown, Eye, KeyRound, Lock, Shield } from "lucide-react";
+import { Bell, Crown, Eye, KeyRound, Lock, Shield, CheckCircle2 } from "lucide-react";
 import { FormEvent, useState } from "react";
-import { Modal } from "@/components/Modal";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
+import { Modal } from "@/components/ui/Modal";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { apiGet, apiSend } from "@/lib/api/client";
 import type { User } from "@/types";
@@ -16,13 +19,18 @@ export function SettingsPage() {
   const [showPlan, setShowPlan] = useState(false);
   const queryClient = useQueryClient();
   const me = useQuery({ queryKey: ["me"], queryFn: () => apiGet<User>("/api/users/me") });
+  const [saved, setSaved] = useState(false);
   const update = useMutation({
     mutationFn: (body: Partial<User>) => apiSend<User>(`/api/users/${me.data?.id}`, "PATCH", body),
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["me"] }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["me"] });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    },
   });
 
   if (me.isLoading) return <div className="skeleton" />;
-  if (!me.data) return <div className="card" style={{ padding: 24 }}>Settings did not load.</div>;
+  if (!me.data) return <Card padding="lg">Settings did not load.</Card>;
   const currentUser = me.data;
 
   function saveAccount(event: FormEvent<HTMLFormElement>) {
@@ -34,41 +42,98 @@ export function SettingsPage() {
   return (
     <PageTransition>
       <div className="screen-title"><div><h1>Settings</h1><p className="muted">Control profile visibility, account details, plan access, and alerts.</p></div></div>
-      <div className="row" style={{ flexWrap: "wrap", marginBottom: 18 }}>{tabs.map((tab) => <button key={tab} className={`btn ${activeTab === tab ? "btn-primary" : "btn-ghost"}`} onClick={() => setActiveTab(tab)}>{tab}</button>)}</div>
-      <section className="card" style={{ padding: 22 }}>
+      <div className="row" style={{ flexWrap: "wrap", marginBottom: 18 }}>{tabs.map((tab) => <Button key={tab} variant={activeTab === tab ? "primary" : "ghost"} size="sm" onClick={() => setActiveTab(tab)}>{tab}</Button>)}</div>
+      <Card padding="lg">
+        {saved && (
+          <div className="animate-fade-in-down" style={{
+            display: "flex", alignItems: "center", gap: 8,
+            padding: "10px 14px", marginBottom: 14,
+            background: "var(--color-success-light)",
+            border: "1px solid var(--color-success)",
+            borderRadius: "var(--radius-md)",
+            fontSize: 13, fontWeight: 600, color: "var(--color-success)",
+          }}>
+            <CheckCircle2 size={16} /> Settings saved
+          </div>
+        )}
         {activeTab === "Account" ? (
           <form className="grid" onSubmit={saveAccount}>
-            <div className="row"><Shield color="#1A6B5C" /><strong>Account profile</strong></div>
-            <input className="input" name="full_name" defaultValue={currentUser.full_name} />
-            <input className="input" name="email" defaultValue={currentUser.email} />
-            <input className="input" name="city" defaultValue={currentUser.city} />
-            <div className="row row--wrap">
-              <button className="btn btn-primary">Save account</button>
-              <Link className="btn btn-ghost" href="/reset-password"><KeyRound size={17} /> Change password</Link>
+            <div className="row"><Shield color="var(--color-primary)" /><strong>Account profile</strong></div>
+            <Input name="full_name" placeholder="Full name" defaultValue={currentUser.full_name} />
+            <Input name="email" placeholder="Email" type="email" defaultValue={currentUser.email} />
+            <Input name="city" placeholder="City" defaultValue={currentUser.city} />
+            <div className="row row--wrap" style={{ gap: 10 }}>
+              <Button type="submit" loading={update.isPending}>Save account</Button>
+              <Link href="/reset-password"><Button variant="ghost" icon={<KeyRound size={17} />}>Change password</Button></Link>
             </div>
           </form>
         ) : null}
         {activeTab === "Privacy" ? (
           <div className="grid">
-            <div className="row"><Lock color="#1A6B5C" /><strong>Privacy controls</strong></div>
-            <label className="row space-between"><span className="row"><Eye size={18} /> Show profile photo</span><input type="checkbox" defaultChecked={currentUser.show_photo} onChange={(event) => update.mutate({ show_photo: event.currentTarget.checked })} /></label>
-            <label className="row space-between"><span>Open to opportunities</span><input type="checkbox" defaultChecked={currentUser.open_to_opportunities} onChange={(event) => update.mutate({ open_to_opportunities: event.currentTarget.checked })} /></label>
-            <label className="row space-between"><span>Allow connection requests</span><input type="checkbox" defaultChecked /></label>
+            <div className="row"><Lock color="var(--color-primary)" /><strong>Privacy controls</strong></div>
+            <div className="row space-between" style={{ cursor: "pointer" }}>
+              <span className="row"><Eye size={18} /> Show profile photo</span>
+              <label className="toggle-switch">
+                <input type="checkbox" defaultChecked={currentUser.show_photo} onChange={(event) => update.mutate({ show_photo: event.currentTarget.checked })} />
+                <span className="toggle-slider" />
+              </label>
+            </div>
+            <div className="row space-between" style={{ cursor: "pointer" }}>
+              <span>Open to opportunities</span>
+              <label className="toggle-switch">
+                <input type="checkbox" defaultChecked={currentUser.open_to_opportunities} onChange={(event) => update.mutate({ open_to_opportunities: event.currentTarget.checked })} />
+                <span className="toggle-slider" />
+              </label>
+            </div>
+            <div className="row space-between" style={{ cursor: "pointer" }}>
+              <span>Allow connection requests</span>
+              <label className="toggle-switch">
+                <input type="checkbox" defaultChecked />
+                <span className="toggle-slider" />
+              </label>
+            </div>
           </div>
         ) : null}
         {activeTab === "Plan" ? (
-          <div className="grid"><div className="row"><Crown color="#C9A84C" /><strong>Current plan: {currentUser.plan}</strong></div><p className="muted">Free includes 10 messages per week. Pro unlocks unlimited messaging, full mentorship, private groups, profile analytics, and job posting.</p><button className="btn btn-accent" style={{ justifySelf: "start" }} onClick={() => setShowPlan(true)}>Compare plans</button></div>
+          <div className="grid">
+            <div className="row"><Crown color="var(--color-accent)" /><strong>Current plan: {currentUser.plan === "pro" ? "Pro" : currentUser.plan === "free" ? "Free" : currentUser.plan}</strong></div>
+            <p className="muted" style={{ fontSize: 13 }}>Free includes 10 messages per week. Pro unlocks unlimited messaging, full mentorship, private groups, profile analytics, and job posting.</p>
+            <Button variant="accent" onClick={() => setShowPlan(true)} style={{ justifySelf: "start" }}>Compare plans</Button>
+          </div>
         ) : null}
         {activeTab === "Notifications" ? (
-          <div className="grid"><div className="row"><Bell color="#1A6B5C" /><strong>Notification preferences</strong></div>{["Connection requests", "New messages", "Mentorship updates", "Matching jobs", "Sponsored events"].map((label) => <label className="row space-between" key={label}><span>{label}</span><input type="checkbox" defaultChecked /></label>)}</div>
+          <div className="grid">
+            <div className="row"><Bell color="var(--color-primary)" /><strong>Notification preferences</strong></div>
+            {["Connection requests", "New messages", "Mentorship updates", "Matching jobs", "Sponsored events"].map((item) => (
+              <div key={item} className="row space-between" style={{ cursor: "pointer" }}>
+                <span>{item}</span>
+                <label className="toggle-switch">
+                  <input type="checkbox" defaultChecked />
+                  <span className="toggle-slider" />
+                </label>
+              </div>
+            ))}
+          </div>
         ) : null}
-      </section>
+      </Card>
       {showPlan ? (
         <Modal title="Plan comparison" onClose={() => setShowPlan(false)}>
-          <div className="grid three-col">
-            <article className="card" style={{ padding: 16, boxShadow: "none" }}><h3>Free</h3><strong>₦0/month</strong><p className="muted">Professional profile, public communities, 30 connections, 10 messages per week, browse jobs and mentorship.</p></article>
-            <article className="card" style={{ padding: 16, boxShadow: "none" }}><h3>Pro</h3><strong>₦9,000/month</strong><p className="muted">Unlimited connections and messaging, job posting, full mentorship matching, halal job alerts, analytics, private groups.</p></article>
-            <article className="card" style={{ padding: 16, boxShadow: "none" }}><h3>Event Sponsor</h3><strong>From ₦49,000/event</strong><p className="muted">For organisations only: featured events, sponsored slots, targeting, analytics, and Verified Organiser badge.</p></article>
+          <div className="grid" style={{ gap: 12 }}>
+            <Card padding="md" style={{ borderColor: "var(--color-line)", boxShadow: "none" }}>
+              <h3 style={{ fontFamily: "var(--font-display)", margin: "0 0 8px" }}>Free</h3>
+              <strong style={{ fontSize: 28, display: "block", marginBottom: 8 }}>₦0/month</strong>
+              <p className="muted" style={{ fontSize: 13, margin: 0 }}>Professional profile, public communities, 30 connections, 10 messages per week, browse jobs and mentorship.</p>
+            </Card>
+            <Card padding="md" variant="sponsored">
+              <h3 style={{ fontFamily: "var(--font-display)", margin: "0 0 8px" }}>Pro</h3>
+              <strong style={{ fontSize: 28, display: "block", marginBottom: 8 }}>₦9,000/month</strong>
+              <p className="muted" style={{ fontSize: 13, margin: 0 }}>Unlimited connections and messaging, job posting, full mentorship matching, halal job alerts, analytics, private groups.</p>
+            </Card>
+            <Card padding="md" style={{ borderColor: "var(--color-line)", boxShadow: "none" }}>
+              <h3 style={{ fontFamily: "var(--font-display)", margin: "0 0 8px" }}>Event Sponsor</h3>
+              <strong style={{ fontSize: 28, display: "block", marginBottom: 8 }}>From ₦49,000/event</strong>
+              <p className="muted" style={{ fontSize: 13, margin: 0 }}>For organisations only: featured events, sponsored slots, targeting, analytics, and Verified Organiser badge.</p>
+            </Card>
           </div>
         </Modal>
       ) : null}
