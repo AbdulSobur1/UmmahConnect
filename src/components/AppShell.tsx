@@ -72,9 +72,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* Desktop top nav */}
-      <nav className="app-nav app-nav--desktop" style={{ position: "sticky", top: 0, zIndex: 20 }}>
+      <nav className="app-nav app-nav--desktop" style={{ position: "sticky", top: 0 }}>
         <div className="container app-nav-inner">
-          <Link href="/feed" className="brand transition-fast" style={{ opacity: 1 }}>
+          <Link href="/feed" className="brand transition-fast">
             Ummah <span>Connect</span>
           </Link>
           <div className="nav-links" aria-label="Main navigation">
@@ -87,7 +87,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   href={item.href}
                   className={`nav-link ${active ? "nav-link-active" : ""} transition-fast`}
                 >
-                  <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <span className="row">
                     <Icon size={16} />
                     {item.label}
                   </span>
@@ -97,116 +97,39 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
           {/* Avatar dropdown — desktop */}
           <div
-            className="desktop-only"
+            className="desktop-only desktop-header-right"
             ref={dropdownRef}
-            style={{ position: "relative", display: "flex", alignItems: "center", gap: 12 }}
           >
             <Link
               href="/settings"
-              className="transition-fast hover-lift"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                borderRadius: 999,
-                padding: "8px 12px",
-                color: "var(--color-success)",
-                background: "var(--color-success-light)",
-                border: "1px solid rgba(94,205,181,0.16)",
-                fontSize: 14,
-                fontWeight: 600,
-                textDecoration: "none",
-              }}
+              className="plan-badge transition-fast hover-lift"
             >
               {currentUser?.plan === "free" ? "Free" : currentUser?.plan ?? "..."}
             </Link>
             <button
-              className="transition-fast"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                border: 0,
-                padding: "2px 6px",
-                borderRadius: 8,
-                background: "transparent",
-                color: "rgba(255,255,255,0.45)",
-                cursor: "pointer",
-                transition: "background 0.15s ease",
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.06)"}
-              onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+              className="avatar-dropdown-trigger"
               onClick={toggleDropdown}
               aria-label="User menu"
             >
               <Avatar name={currentUser?.full_name ?? "U"} size={32} />
               <ChevronDown
                 size={14}
-                style={{ transition: "transform 0.2s ease", transform: showDropdown ? "rotate(180deg)" : "rotate(0deg)" }}
+                className={`chevron-icon ${showDropdown ? "chevron-icon--open" : ""}`}
               />
             </button>
             {showDropdown ? (
               <div
-                className={dropdownAnimating ? "animate-scale-in" : ""}
-                style={{
-                  position: "absolute",
-                  top: "calc(100% + 8px)",
-                  right: 0,
-                  background: "var(--color-bg-secondary)",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  borderRadius: 12,
-                  padding: 6,
-                  minWidth: 200,
-                  zIndex: 30,
-                  boxShadow: "0 12px 40px rgba(0,0,0,0.4)",
-                  transformOrigin: "top right",
-                }}
+                className={`dropdown-menu ${dropdownAnimating ? "animate-scale-in" : ""}`}
               >
                 <Link
                   href="/settings"
-                  className="transition-fast"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                    width: "100%",
-                    padding: "10px 12px",
-                    borderRadius: 8,
-                    color: "rgba(255,255,255,0.8)",
-                    fontSize: 14,
-                    fontWeight: 600,
-                    textDecoration: "none",
-                    border: 0,
-                    background: "transparent",
-                    cursor: "pointer",
-                    transition: "background 0.15s ease",
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.06)"}
-                  onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                  className="dropdown-item"
                   onClick={() => setShowDropdown(false)}
                 >
                   <Settings size={16} /> Settings
                 </Link>
                 <button
-                  className="transition-fast"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                    width: "100%",
-                    padding: "10px 12px",
-                    borderRadius: 8,
-                    color: "rgba(255,255,255,0.8)",
-                    fontSize: 14,
-                    fontWeight: 600,
-                    textDecoration: "none",
-                    border: 0,
-                    background: "transparent",
-                    cursor: "pointer",
-                    transition: "background 0.15s ease",
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.06)"}
-                  onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                  className="dropdown-item"
                   onClick={() => { window.location.href = "/api/auth/logout"; }}
                 >
                   <LogOut size={16} /> Sign out
@@ -219,36 +142,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Notification banner at top of page */}
       {latestNotification && dismissedNotif !== latestNotification.id ? (
-        <div
-          className="animate-notification-slide"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            padding: "10px 18px",
-            background: "rgba(26,107,92,0.92)",
-            borderBottom: "1px solid rgba(201,168,76,0.2)",
-            fontSize: 13,
-            fontWeight: 500,
-            color: "rgba(255,255,255,0.92)",
-          }}
+        <div className="notif-banner animate-notification-slide"
         >
-          <Bell size={16} style={{ flex: "0 0 auto", color: "var(--color-accent)" }} />
-          <span style={{ flex: 1, lineHeight: 1.4 }}>{latestNotification.content}</span>
-          <button
-            className="transition-fast"
-            style={{
-              flex: "0 0 auto",
-              background: "transparent",
-              border: 0,
-              color: "rgba(255,255,255,0.5)",
-              cursor: "pointer",
-              padding: 4,
-              borderRadius: 6,
-              transition: "all 0.15s ease",
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.1)"; e.currentTarget.style.color = "#fff"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.5)"; }}
+          <Bell size={16} className="bell-icon" />
+          <span className="banner-text">{latestNotification.content}</span>
+          <button className="notif-banner-close"
             onClick={() => setDismissedNotif(latestNotification.id)}
             aria-label="Dismiss"
           >
@@ -269,48 +167,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Link
               key={tab.href}
               href={tab.href}
-              className="transition-fast"
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: 1,
-                padding: "6px 8px 4px",
-                borderRadius: 8,
-                color: isActive ? "var(--color-primary)" : "rgba(255,255,255,0.5)",
-                fontSize: 11,
-                fontWeight: 600,
-                fontFamily: "'DM Sans', sans-serif",
-                textDecoration: "none",
-                minWidth: 48,
-                minHeight: 48,
-                border: 0,
-                background: "transparent",
-                cursor: "pointer",
-                position: "relative",
-                transition: "color 0.15s ease",
-              }}
+              className={`bottom-nav-item ${isActive ? "bottom-nav-item--active" : ""}`}
             >
-              <Icon
-                size={22}
-                style={{ transition: "transform 0.15s ease" }}
-                className={isActive ? "" : ""}
-              />
+              <Icon size={22} />
               <span>{tab.label}</span>
-              {isActive ? (
-                <span
-                  style={{
-                    position: "absolute",
-                    top: 0,
-                    left: "50%",
-                    transform: "translateX(-50%)",
-                    width: 20,
-                    height: 3,
-                    borderRadius: "0 0 3px 3px",
-                    background: "var(--color-primary)",
-                  }}
-                />
-              ) : null}
+              {isActive ? <span className="tab-indicator" /> : null}
             </Link>
           );
         })}

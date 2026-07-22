@@ -109,21 +109,7 @@ export function Profile() {
     <div className="animate-fade-in">
       {/* Success toast */}
       {savedSuccess ? (
-        <div
-          className="animate-fade-in-down"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            padding: "10px 16px",
-            background: "rgba(94,205,181,0.15)",
-            border: "1px solid rgba(94,205,181,0.3)",
-            borderRadius: 12,
-            marginBottom: 12,
-            fontSize: 14,
-            fontWeight: 600,
-            color: "var(--color-success)",
-          }}
+        <div className="success-banner animate-fade-in-down"
         >
           <CheckCircle2 size={18} /> Profile updated successfully
         </div>
@@ -133,13 +119,9 @@ export function Profile() {
       <div
         className="profile-banner transition-normal"
         style={{
-          height: 140,
-          borderRadius: "16px 16px 0 0",
           background: displayBanner
             ? `url(${displayBanner}) center/cover no-repeat`
             : "linear-gradient(120deg, var(--color-primary), var(--color-accent))",
-          position: "relative",
-          overflow: "hidden",
         }}
       >
         <button
@@ -160,26 +142,10 @@ export function Profile() {
 
       {/* 2. Avatar + Edit button */}
       <div
-        className="animate-fade-in"
-        style={{
-          padding: "0 20px",
-          marginTop: -40,
-          position: "relative",
-          zIndex: 2,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-end",
-        }}
+        className="profile-avatar-row animate-fade-in"
       >
-        <div style={{ position: "relative", display: "inline-flex" }}>
-          <div
-            className="transition-normal"
-            style={{
-              borderRadius: "999px",
-              display: "inline-flex",
-              border: "3px solid var(--color-bg-dark)",
-              boxShadow: "0 0 0 3px rgba(201,168,76,0.2)",
-            }}
+        <div className="profile-avatar-inner">
+          <div className="profile-avatar-border transition-normal"
           >
             <Avatar name={currentUser.full_name} size={80} src={displayAvatar} />
           </div>
@@ -209,34 +175,23 @@ export function Profile() {
       </div>
 
       {/* 3. Name + Industry + Location + Bio + Skills */}
-      <div style={{ padding: "12px 20px 0" }} className="animate-fade-in">
-        <h1
-          className="font-display"
-          style={{
-            margin: 0,
-            fontSize: 22,
-            fontWeight: 700,
-            lineHeight: 1.2,
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            maxWidth: "100%",
-          }}
+      <div className="profile-content-inner animate-fade-in">
+        <h1 className="profile-name font-display"
         >
           {currentUser.full_name}
         </h1>
 
-        <p style={{ margin: "4px 0 0", fontSize: 14, color: "rgba(255,255,255,0.55)" }}>
+        <p className="profile-meta">
           {[currentUser.industry, currentUser.career_stage].filter(Boolean).join(" · ") || "No industry set"}
         </p>
 
-        <p style={{ margin: "4px 0 0", fontSize: 13, color: "rgba(255,255,255,0.55)", display: "flex", alignItems: "center", gap: 4 }}>
+        <p className="profile-meta-sm">
           <MapPin size={12} />
           {currentUser.city}, {currentUser.country}
         </p>
 
         {currentUser.bio ? (
-          <div className="animate-fade-in" style={{ marginTop: 10, fontSize: 14, lineHeight: 1.6, color: "rgba(255,255,255,0.8)" }}>
+          <div className="animate-fade-in profile-bio">
             {currentUser.bio.length > 150 && !bioExpanded
               ? currentUser.bio.slice(0, 150) + "..."
               : currentUser.bio}
@@ -253,9 +208,7 @@ export function Profile() {
         ) : null}
 
         {currentUser.skills.length > 0 && (
-          <div
-            className="skill-scroll animate-fade-in"
-            style={{ marginTop: 10, display: "flex", gap: 6, overflowX: "auto", paddingBottom: 4 }}
+          <div className="skill-bar animate-fade-in"
           >
             {currentUser.skills.map((skill) => (
               <Tag key={skill} className="transition-fast">{skill}</Tag>
@@ -265,34 +218,16 @@ export function Profile() {
       </div>
 
       {/* 4. Stats row */}
-      <div
-        className="stagger-children"
-        style={{
-          padding: "16px 20px",
-          display: "flex",
-          gap: 0,
-          borderBottom: "1px solid rgba(255,255,255,0.08)",
-          borderTop: "1px solid rgba(255,255,255,0.08)",
-          margin: "14px 20px 0",
-        }}
+      <div className="profile-stats-row stagger-children"
       >
         {[
           { label: "Connections", value: String(connections.data?.length ?? 0), icon: Users },
           { label: "Posts", value: String(userPosts.length), icon: FileText },
           { label: "Communities", value: "—", icon: Globe },
         ].map(({ label, value, icon: Icon }) => (
-          <div key={label} style={{ flex: 1, textAlign: "center", padding: "8px 0" }}>
-            <div style={{ fontSize: 18, fontWeight: 700 }}>{value}</div>
-            <div
-              style={{
-                fontSize: 12,
-                color: "rgba(255,255,255,0.55)",
-                marginTop: 2,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 4,
-              }}
+          <div key={label} className="stat-item">
+            <div className="stat-value">{value}</div>
+            <div className="stat-label"
             >
               <Icon size={12} /> {label}
             </div>
@@ -302,20 +237,7 @@ export function Profile() {
 
       {/* 5. Open to Opportunities */}
       {currentUser.open_to_opportunities && (
-        <div
-          className="animate-fade-in"
-          style={{
-            margin: "14px 20px",
-            padding: "10px 14px",
-            background: "var(--color-primary)",
-            borderRadius: 16,
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            fontSize: 13,
-            fontWeight: 600,
-            color: "#fff",
-          }}
+        <div className="profile-opp-banner animate-fade-in"
         >
           <Briefcase size={16} />
           ✓ Open to Opportunities
@@ -323,16 +245,16 @@ export function Profile() {
       )}
 
       {/* 6. Connections & Posts */}
-      <div style={{ padding: "0 20px 20px" }} className="stagger-children">
+      <div className="profile-content stagger-children">
         {/* Connections Section */}
         <Card
           variant="interactive"
           padding="md"
           style={{ marginTop: 14 }}
         >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-            <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Connections</h3>
-            <Button variant="ghost" size="sm" style={{ fontSize: 13, color: "var(--color-primary)", padding: 0, border: 0, background: "none" }}>See all</Button>
+          <div className="flex-between mb-sm">
+            <h3 className="text-bold" style={{ margin: 0, fontSize: 18 }}>Connections</h3>
+            <Button variant="ghost" size="sm" className="see-all-btn">See all</Button>
           </div>
           <p style={{ fontSize: 13, color: "var(--color-text-muted)", margin: 0 }}>
             Connect with professionals to grow your network
@@ -399,10 +321,7 @@ export function Profile() {
       {/* Edit Modal */}
       {editing ? (
         <Modal title="Edit profile" onClose={() => setEditing(false)}>
-          <form
-            className="grid"
-            onSubmit={submit}
-            style={{ display: "grid", gap: 16 }}
+          <form className="edit-form" onSubmit={submit}
           >
             <Input name="full_name" defaultValue={currentUser.full_name} placeholder="Full name" />
             <Input name="industry" defaultValue={currentUser.industry} placeholder="Industry" />
