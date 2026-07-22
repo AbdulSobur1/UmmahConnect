@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { auth } from "@clerk/nextjs/server";
 import { ok, err } from "@/lib/api/helpers";
 
 export async function POST(request: NextRequest) {
@@ -11,16 +11,8 @@ export async function POST(request: NextRequest) {
       return err("Invalid email or password.", 401);
     }
 
-    const supabase = await createClient();
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      return err("Invalid email or password.", 401);
-    }
-
+    // Clerk handles sign-in through its own API
+    // This endpoint is kept for backward compatibility but login is done via Clerk UI
     return ok({ success: true });
   } catch {
     return err("Invalid email or password.", 401);

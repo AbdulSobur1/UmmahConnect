@@ -1,21 +1,24 @@
-import { Suspense } from 'react';
-import Link from 'next/link';
-import LoginForm from './login-form';
+import { SignIn } from "@clerk/nextjs";
 
 export default function LoginPage() {
   return (
     <main className="auth-page">
-      <Suspense fallback={
-        <div className="auth-stack">
-          <div className="auth-card">
-            <Link href="/" className="auth-logo">Ummah <span>Connect</span></Link>
-            <h1>Welcome back</h1>
-            <p className="auth-subtitle">Sign in to your Ummah Connect account</p>
-          </div>
-        </div>
-      }>
-        <LoginForm />
-      </Suspense>
+      <div className="auth-stack">
+        <SignIn
+          appearance={{
+            variables: {
+              colorPrimary: "#1A6B5C",
+              colorBackground: "#0D1B1E",
+              colorText: "#ffffff",
+              colorInputBackground: "#132420",
+              colorInputText: "#ffffff",
+              borderRadius: "12px",
+            },
+          }}
+          redirectUrl="/feed"
+          afterSignInUrl="/feed"
+        />
+      </div>
     </main>
   );
 }

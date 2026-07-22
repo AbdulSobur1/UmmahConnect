@@ -1,26 +1,34 @@
 import { NextRequest } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { withHandler, ok, err } from "@/lib/api/helpers";
+import { db } from "@/lib/db/client";
+import { eventListings, users } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 import { eventDto } from "@/lib/api/mappers";
+import { fail, ok, serverError } from "@/lib/api/response";
 
 export const dynamic = "force-dynamic";
 
-export const GET = withHandler(async (_req: NextRequest, ctx?: unknown) => {
-  const params = (ctx as { params: { id: string } }).params;
-  const today = new Date().toISOString().slice(0, 10);
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
 
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("event_listings")
-    .select("*")
-    .eq("id", params.id)
-    .eq("is_active", true)
-    .gte("event_date", today)
-    .single();
+    const inserted = await db
+      .insert(eventListings)
+      .values({
+        sponsorId: body.sponsor_id,
+        title: body.title,
+        eventDate: body.event_date,
+        locationType: body.location_type,
+        description: body.description ?? null,
+        locationDetail: body.location_detail ?? null,
+        targetIndustry: body.target_industry ?? null,
+        isActive: false,
+        isPaid: false,
+      })
+      .returning();
 
-  if (!data) {
-    return err("Event not found", 404);
+    if (!inserted[0]) return fail("create_failed", 400);
+    return ok(eventDto(inserted[0] as any), 201);
+  } catch {
+    return serverError();
   }
-
-  return ok(eventDto(data as any));
-});
+}

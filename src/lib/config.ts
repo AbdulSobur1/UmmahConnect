@@ -1,7 +1,7 @@
 const requiredKeys = [
-  "NEXT_PUBLIC_SUPABASE_URL",
-  "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-  "SUPABASE_SERVICE_ROLE_KEY",
+  "DATABASE_URL",
+  "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY",
+  "CLERK_SECRET_KEY",
   "PAYSTACK_SECRET_KEY",
   "NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY",
   "NEXT_PUBLIC_APP_URL",
@@ -19,9 +19,9 @@ function readEnv(key: EnvKey): string {
 
 export function getServerConfig() {
   return {
-    supabaseUrl: readEnv("NEXT_PUBLIC_SUPABASE_URL"),
-    supabaseAnonKey: readEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
-    supabaseServiceRoleKey: readEnv("SUPABASE_SERVICE_ROLE_KEY"),
+    databaseUrl: readEnv("DATABASE_URL"),
+    clerkPublishableKey: readEnv("NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY"),
+    clerkSecretKey: readEnv("CLERK_SECRET_KEY"),
     paystackSecretKey: readEnv("PAYSTACK_SECRET_KEY"),
     paystackPublicKey: readEnv("NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY"),
     appUrl: readEnv("NEXT_PUBLIC_APP_URL"),

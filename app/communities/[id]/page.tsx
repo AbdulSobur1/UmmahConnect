@@ -3,47 +3,50 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PublicLayout } from "@/components/layouts/PublicLayout";
 import { CommunityPublicClient } from "@/components/public/CommunityPublicClient";
+import { db } from "@/lib/db/client";
+import { communities, posts, users } from "@/lib/db/schema";
+import { eq, desc } from "drizzle-orm";
 import { communityDto, postDto } from "@/lib/api/mappers";
 import { getSessionUser } from "@/lib/auth/session";
-import { createClient } from "@/lib/supabase/server";
 
 type PageProps = { params: { id: string } };
 
 async function fetchCommunity(id: string) {
-  const supabase = await createClient();
-  const { data: community } = await supabase
-    .from("communities")
-    .select("*")
-    .eq("id", id)
-    .single();
+  const communityData = await db
+    .select()
+    .from(communities)
+    .where(eq(communities.id, id))
+    .limit(1);
 
-  if (!community) return null;
+  if (!communityData[0]) return null;
 
-  const communityData = communityDto({
+  const community = communityData[0];
+  const communityResult = communityDto({
     id: community.id,
     name: community.name,
     icon: community.icon,
     description: community.description,
-    is_private: community.is_private,
-    member_count: community.member_count,
-    created_at: community.created_at ?? null,
+    is_private: community.isPrivate,
+    member_count: community.memberCount,
+    created_at: community.createdAt?.toISOString() ?? null,
   });
 
-  if (community.is_private) {
-    return { ...communityData, is_private: true as const };
+  if (community.isPrivate) {
+    return { ...communityResult, is_private: true as const };
   }
 
-  const { data: postRows } = await supabase
-    .from("posts")
-    .select("*, users:user_id(*)")
-    .eq("community_id", id)
-    .order("created_at", { ascending: false })
+  const postRows = await db
+    .select()
+    .from(posts)
+    .leftJoin(users, eq(posts.userId, users.id))
+    .where(eq(posts.communityId, id))
+    .orderBy(desc(posts.createdAt))
     .limit(20);
 
   return {
-    ...communityData,
+    ...communityResult,
     posts: (postRows ?? []).map((row: any) =>
-      postDto({ ...row, users: row.users }),
+      postDto({ ...row.posts, users: row.users }),
     ),
   };
 }

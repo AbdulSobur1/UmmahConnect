@@ -1,23 +1,26 @@
 import { NextRequest } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { withHandler, ok, err } from "@/lib/api/helpers";
+import { db } from "@/lib/db/client";
+import { users } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 import { publicProfileDto } from "@/lib/api/mappers";
+import { fail, ok, serverError } from "@/lib/api/response";
 
 export const dynamic = "force-dynamic";
 
-export const GET = withHandler(async (_req: NextRequest, ctx?: unknown) => {
-  const params = (ctx as { params: { id: string } }).params;
-  const supabase = await createClient();
+export async function GET(
+  _: NextRequest,
+  { params }: { params: { id: string } },
+) {
+  try {
+    const data = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, params.id))
+      .limit(1);
 
-  const { data } = await supabase
-    .from("users")
-    .select("*")
-    .eq("id", params.id)
-    .single();
-
-  if (!data || data.is_banned) {
-    return err("Profile not found", 404);
+    if (!data[0]) return fail("not_found", 404);
+    return ok(publicProfileDto(data[0] as any));
+  } catch {
+    return serverError();
   }
-
-  return ok(publicProfileDto(data as any));
-});
+}

@@ -1,5 +1,8 @@
 import { NextRequest } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { auth } from "@clerk/nextjs/server";
+import { db } from "@/lib/db/client";
+import { users } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 import { initializePaystackTransaction } from "@/lib/api/paystack";
 import { asRecord, stringValue } from "@/lib/api/parsing";
 import { fail, ok, serverError } from "@/lib/api/response";
@@ -19,9 +22,16 @@ const SPONSOR_AMOUNTS: Record<string, number> = {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user?.id || !user.email) return fail("unauthorized", 401);
+    const { userId } = auth();
+    if (!userId) return fail("unauthorized", 401);
+
+    const user = await db
+      .select({ email: users.email })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    if (!user[0]?.email) return fail("unauthorized", 401);
 
     const body = asRecord(await request.json());
     const plan = stringValue(body.plan);
@@ -35,12 +45,12 @@ export async function POST(request: NextRequest) {
     if (!amountKobo) return fail("unsupported_currency", 400);
 
     const payment = await initializePaystackTransaction({
-      email: user.email,
+      email: user[0].email,
       amountKobo,
       currency,
       callbackUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/api/payments/verify`,
       metadata: {
-        user_id: user.id,
+        user_id: userId,
         plan,
         payment_type: isSponsor ? "event_sponsor" : "subscription",
         event_id: eventId ?? "",

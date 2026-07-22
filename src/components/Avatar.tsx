@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { avatarColor, initials } from "@/lib/utils/avatar";
 
 type AvatarProps = {
@@ -14,7 +15,13 @@ export function Avatar({ name, size = 44, src }: AvatarProps) {
         style={{ width: size, height: size, overflow: "hidden" }}
         aria-label={name}
       >
-        <img src={src} alt={name} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
+        <Image
+          src={src}
+          alt={name}
+          width={size}
+          height={size}
+          style={{ objectFit: "cover", borderRadius: "50%" }}
+        />
       </span>
     );
   }

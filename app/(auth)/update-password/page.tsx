@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { PageTransition } from "@/components/ui/PageTransition";
+import { useUser } from "@clerk/nextjs";
 
 export default function UpdatePasswordPage() {
   const router = useRouter();
+  const { user } = useUser();
   const [error, setError] = useState<string | null>(null);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -19,28 +21,34 @@ export default function UpdatePasswordPage() {
       return;
     }
 
-    // Update password via Supabase Auth
-    const supabase = createClient();
-    const { error } = await supabase.auth.updateUser({ password });
-
-    if (error) {
-      setError(error.message);
-      return;
+    try {
+      await user?.updatePassword({ password });
+      router.push("/login");
+    } catch (err: any) {
+      setError(err?.errors?.[0]?.message ?? "Failed to update password.");
     }
-
-    await supabase.auth.signOut();
-    router.push("/login");
   }
 
   return (
-    <main className="page auth-page">
-      <form className="card grid auth-card" onSubmit={submit}>
-        <Link href="/" className="brand">Ummah <span>Connect</span></Link>
-        <h1 className="font-display">Choose a new password</h1>
-        <input className="input" name="password" type="password" placeholder="New password" required minLength={8} />
-        {error ? <p className="muted">{error}</p> : null}
-        <button className="btn btn-primary">Update password</button>
-      </form>
-    </main>
+    <PageTransition>
+      <main className="page auth-page">
+        <form className="card grid auth-card" onSubmit={submit}>
+          <Link href="/" className="brand">
+            Ummah <span>Connect</span>
+          </Link>
+          <h1 className="font-display">Choose a new password</h1>
+          <input
+            className="input"
+            name="password"
+            type="password"
+            placeholder="New password"
+            required
+            minLength={8}
+          />
+          {error ? <p className="muted">{error}</p> : null}
+          <button className="btn btn-primary">Update password</button>
+        </form>
+      </main>
+    </PageTransition>
   );
 }

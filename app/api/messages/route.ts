@@ -1,4 +1,6 @@
-import { createClient } from "@/lib/supabase/server";
+import { db } from "@/lib/db/client";
+import { messages } from "@/lib/db/schema";
+import { eq, or, desc } from "drizzle-orm";
 import { requireAuth } from "@/lib/api/auth";
 import { fail, ok, serverError } from "@/lib/api/response";
 
@@ -9,12 +11,16 @@ export async function GET() {
     const auth = await requireAuth();
     if ("error" in auth) return fail(auth.error, 401);
 
-    const supabase = await createClient();
-    const { data } = await supabase
-      .from("messages")
-      .select("*")
-      .or(`sender_id.eq.${auth.userId},receiver_id.eq.${auth.userId}`)
-      .order("created_at", { ascending: false });
+    const data = await db
+      .select()
+      .from(messages)
+      .where(
+        or(
+          eq(messages.senderId, auth.userId),
+          eq(messages.receiverId, auth.userId),
+        ),
+      )
+      .orderBy(desc(messages.createdAt));
 
     return ok(data ?? []);
   } catch {

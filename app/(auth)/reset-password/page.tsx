@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Check, Loader2 } from "lucide-react";
 import { FormEvent, useState } from "react";
+import { PageTransition } from "@/components/ui/PageTransition";
 
 type ResetResponse = {
   error: string | null;
@@ -34,6 +35,7 @@ export default function ResetPasswordPage() {
   }
 
   return (
+    <PageTransition>
     <main className="auth-page">
       <div className="auth-stack">
         <section className="auth-card">
@@ -65,5 +67,6 @@ export default function ResetPasswordPage() {
         </section>
       </div>
     </main>
+    </PageTransition>
   );
 }

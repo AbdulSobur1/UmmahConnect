@@ -1,5 +1,7 @@
-import { auth } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
+import { db } from "@/lib/db/client";
+import { users } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 
 export type AuthContext = {
   userId: string;
@@ -7,39 +9,49 @@ export type AuthContext = {
   plan: string;
 };
 
-export async function requireAuth(): Promise<AuthContext | { error: "unauthorized" }> {
-  const session = await auth();
-  if (!session?.user?.id || !session.user.email) {
+export async function requireAuth(): Promise<
+  AuthContext | { error: "unauthorized" }
+> {
+  const { userId } = auth();
+  const user = await currentUser();
+
+  if (!userId || !user?.emailAddresses[0]?.emailAddress) {
     return { error: "unauthorized" };
   }
+
+  const profile = await db
+    .select({ plan: users.plan })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
   return {
-    userId: session.user.id,
-    email: session.user.email,
-    plan: session.user.plan ?? "free",
+    userId,
+    email: user.emailAddresses[0].emailAddress,
+    plan: profile[0]?.plan ?? "free",
   };
 }
 
 export async function requireAuthWithProfile() {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const { userId } = auth();
+  if (!userId) {
     return { error: "unauthorized" as const };
   }
 
-  const supabase = await createClient();
-  const { data: profile } = await supabase
-    .from("users")
-    .select("*")
-    .eq("id", session.user.id)
-    .single();
+  const profile = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
 
-  if (!profile) {
+  if (!profile[0]) {
     return { error: "unauthorized" as const };
   }
 
   return {
-    userId: session.user.id,
-    email: session.user.email,
-    profile,
-    plan: profile.plan,
+    userId,
+    email: profile[0].email,
+    profile: profile[0],
+    plan: profile[0].plan,
   };
 }

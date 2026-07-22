@@ -1,5 +1,7 @@
 import { NextRequest } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { db } from "@/lib/db/client";
+import { jobs, users } from "@/lib/db/schema";
+import { eq, desc, and } from "drizzle-orm";
 import { requireAuth } from "@/lib/api/auth";
 import { jobDto } from "@/lib/api/mappers";
 import { notifyUsersByIndustry } from "@/lib/api/notifications";
@@ -9,34 +11,32 @@ export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   try {
-    const industry = request.nextUrl.searchParams.get("industry");
-    const isRemoteParam = request.nextUrl.searchParams.get("is_remote");
-    const page = Math.max(1, Number(request.nextUrl.searchParams.get("page") ?? "1"));
-    const limit = Math.min(
-      20,
-      Math.max(1, Number(request.nextUrl.searchParams.get("limit") ?? "20")),
-    );
+    const auth = await requireAuth();
+    if ("error" in auth) return fail(auth.error, 401);
 
-    const supabase = await createClient();
-    let query = supabase
-      .from("jobs")
-      .select("*")
-      .eq("is_active", true)
-      .eq("is_halal_verified", true)
-      .order("created_at", { ascending: false })
-      .range((page - 1) * limit, page * limit - 1);
+    const { searchParams } = new URL(request.url);
+    const industry = searchParams.get("industry");
 
-    if (industry) {
-      query = query.eq("industry", industry);
-    }
-    if (isRemoteParam === "true") {
-      query = query.eq("is_remote", true);
-    } else if (isRemoteParam === "false") {
-      query = query.eq("is_remote", false);
+    let query = db
+      .select()
+      .from(jobs)
+      .leftJoin(users, eq(jobs.postedBy, users.id))
+      .where(eq(jobs.isActive, true))
+      .orderBy(desc(jobs.createdAt));
+
+    if (industry && industry !== "all") {
+      query = db
+        .select()
+        .from(jobs)
+        .leftJoin(users, eq(jobs.postedBy, users.id))
+        .where(
+          and(eq(jobs.isActive, true), eq(jobs.industry, industry)),
+        )
+        .orderBy(desc(jobs.createdAt));
     }
 
-    const { data } = await query;
-    return ok((data ?? []).map(jobDto as any));
+    const data = await query;
+    return ok((data ?? []).map((row: any) => jobDto({ ...row.jobs, users: row.users })));
   } catch {
     return serverError();
   }
@@ -46,42 +46,40 @@ export async function POST(request: NextRequest) {
   try {
     const auth = await requireAuth();
     if ("error" in auth) return fail(auth.error, 401);
-    if (auth.plan !== "pro") return fail("pro_required", 403);
+    if (auth.plan !== "pro" && auth.plan !== "sponsor")
+      return fail("pro_required", 403);
 
     const body = await request.json();
-    if (!body.halal_confirmed) return fail("halal_confirmation_required", 400);
-    if (!body.title || !body.company) return fail("missing_fields", 400);
+    if (!body.title || !body.company) return fail("title_and_company_required", 400);
 
-    const supabase = await createClient();
-    const { data: job, error } = await supabase
-      .from("jobs")
-      .insert({
-        posted_by: auth.userId,
+    const inserted = await db
+      .insert(jobs)
+      .values({
+        postedBy: auth.userId,
         title: body.title,
         company: body.company,
         description: body.description ?? null,
         industry: body.industry ?? null,
         location: body.location ?? null,
-        is_remote: body.is_remote ?? false,
-        job_type: body.job_type ?? null,
-        career_stage: body.career_stage ?? null,
-        salary_range: body.salary_range ?? null,
-        is_halal_verified: true,
+        isRemote: body.is_remote ?? false,
+        jobType: body.job_type ?? null,
+        careerStage: body.career_stage ?? null,
+        salaryRange: body.salary_range ?? null,
+        isHalalVerified: body.halal_confirmed ?? true,
       })
-      .select()
-      .single();
+      .returning();
 
-    if (error || !job) return fail("create_failed", 400);
+    if (!inserted[0]) return fail("create_failed", 400);
 
-    if (job.industry) {
+    if (body.industry) {
       await notifyUsersByIndustry(
-        job.industry,
-        `New job match: ${job.title} at ${job.company}`,
-        job.id,
+        body.industry,
+        `New job posted: ${body.title} at ${body.company}`,
+        inserted[0].id,
       );
     }
 
-    return ok(jobDto(job as any), 201);
+    return ok(jobDto(inserted[0] as any), 201);
   } catch {
     return serverError();
   }

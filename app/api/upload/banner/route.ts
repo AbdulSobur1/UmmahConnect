@@ -2,16 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
 import { join } from "path";
 import crypto from "crypto";
-import { createClient } from "@/lib/supabase/server";
+import { auth } from "@clerk/nextjs/server";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user?.id) {
+    const { userId } = auth();
+    if (!userId) {
       return NextResponse.json({ error: "unauthorized" }, { status: 401 });
     }
 
@@ -26,12 +24,12 @@ export async function POST(request: NextRequest) {
 
     const ext = file.name.split(".").pop() ?? "jpg";
     const filename = `${crypto.randomUUID()}.${ext}`;
-    const dir = join(process.cwd(), "public", "uploads", "banners", user.id);
+    const dir = join(process.cwd(), "public", "uploads", "banners", userId);
     await mkdir(dir, { recursive: true });
     const filepath = join(dir, filename);
     await writeFile(filepath, buffer);
 
-    const url = `/uploads/banners/${user.id}/${filename}`;
+    const url = `/uploads/banners/${userId}/${filename}`;
     return NextResponse.json({ url });
   } catch {
     return NextResponse.json({ error: "server_error" }, { status: 500 });

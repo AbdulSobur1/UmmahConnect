@@ -1,5 +1,7 @@
 import { NextRequest } from "next/server";
-import { createServiceClient } from "@/lib/supabase/service";
+import { db } from "@/lib/db/client";
+import { users, subscriptions, eventListings } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 import { notifyUser } from "@/lib/api/notifications";
 import { verifyPaystackSignature } from "@/lib/api/paystack";
 import { fail, ok, serverError } from "@/lib/api/response";
@@ -28,58 +30,60 @@ export async function POST(request: NextRequest) {
 
     const payload = JSON.parse(rawBody) as PaystackWebhook;
     const userId = payload.data?.metadata?.user_id;
-    const supabase = createServiceClient();
 
     if (payload.event === "charge.success" && userId) {
       if (payload.data?.metadata?.payment_type === "event_sponsor" && payload.data.metadata.event_id) {
-        await supabase
-          .from("event_listings")
-          .update({ is_active: true })
-          .eq("id", payload.data.metadata.event_id);
+        await db
+          .update(eventListings)
+          .set({ isActive: true })
+          .where(eq(eventListings.id, payload.data.metadata.event_id));
       } else {
-        await supabase.from("users").update({ plan: "pro" }).eq("id", userId);
+        await db
+          .update(users)
+          .set({ plan: "pro" })
+          .where(eq(users.id, userId));
 
-        const { data: existing } = await supabase
-          .from("subscriptions")
-          .select("id")
-          .eq("user_id", userId)
-          .eq("status", "active")
-          .maybeSingle();
+        const existing = await db
+          .select()
+          .from(subscriptions)
+          .where(eq(subscriptions.userId, userId))
+          .limit(1);
 
         const subscription = {
-          user_id: userId,
+          userId,
           plan: "pro",
-          paystack_customer_code: payload.data?.customer?.customer_code,
+          paystackCustomerCode: payload.data?.customer?.customer_code,
           status: "active",
         };
 
-        if (existing?.id) {
-          await supabase
-            .from("subscriptions")
-            .update(subscription)
-            .eq("id", existing.id);
+        if (existing[0]) {
+          await db
+            .update(subscriptions)
+            .set(subscription)
+            .where(eq(subscriptions.id, existing[0].id));
         } else {
-          await supabase.from("subscriptions").insert(subscription);
+          await db.insert(subscriptions).values(subscription);
         }
       }
     }
 
     if (payload.event === "subscription.disable" && userId) {
-      await supabase
-        .from("subscriptions")
-        .update({ status: "cancelled" })
-        .eq("user_id", userId)
-        .eq("status", "active");
+      await db
+        .update(subscriptions)
+        .set({ status: "cancelled" })
+        .where(eq(subscriptions.userId, userId));
 
-      await supabase.from("users").update({ plan: "free" }).eq("id", userId);
+      await db
+        .update(users)
+        .set({ plan: "free" })
+        .where(eq(users.id, userId));
     }
 
     if (payload.event === "invoice.payment_failed" && userId) {
-      await supabase
-        .from("subscriptions")
-        .update({ status: "at_risk" })
-        .eq("user_id", userId)
-        .eq("status", "active");
+      await db
+        .update(subscriptions)
+        .set({ status: "at_risk" })
+        .where(eq(subscriptions.userId, userId));
 
       await notifyUser({
         userId,

@@ -3,31 +3,37 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PublicLayout } from "@/components/layouts/PublicLayout";
 import { ProfileActions } from "@/components/public/ProfileActions";
+import { db } from "@/lib/db/client";
+import { users } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 import { publicProfileDto } from "@/lib/api/mappers";
 import { getSessionUser } from "@/lib/auth/session";
-import { createClient } from "@/lib/supabase/server";
 
 type PageProps = { params: { id: string } };
 
 async function fetchProfile(id: string) {
-  const supabase = await createClient();
-  const { data } = await supabase.from("users").select("*").eq("id", id).single();
-  if (!data || data.is_banned) return null;
+  const data = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, id))
+    .limit(1);
+
+  if (!data[0] || data[0].isBanned) return null;
   return publicProfileDto({
-    id: data.id,
-    full_name: data.full_name,
-    email: data.email,
-    industry: data.industry,
-    career_stage: data.career_stage,
-    city: data.city,
-    country: data.country,
-    bio: data.bio,
-    skills: data.skills ?? [],
-    plan: data.plan,
-    show_photo: data.show_photo,
-    open_to_opportunities: data.open_to_opportunities,
-    avatar_url: data.avatar_url,
-    created_at: data.created_at ?? null,
+    id: data[0].id,
+    full_name: data[0].fullName,
+    email: data[0].email,
+    industry: data[0].industry,
+    career_stage: data[0].careerStage,
+    city: data[0].city,
+    country: data[0].country,
+    bio: data[0].bio,
+    skills: data[0].skills ?? [],
+    plan: data[0].plan,
+    show_photo: data[0].showPhoto,
+    open_to_opportunities: data[0].openToOpportunities,
+    avatar_url: data[0].avatarUrl,
+    created_at: data[0].createdAt?.toISOString() ?? null,
   });
 }
 

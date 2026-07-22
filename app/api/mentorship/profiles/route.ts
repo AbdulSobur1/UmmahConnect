@@ -1,8 +1,9 @@
 import { NextRequest } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { requireAuth, requireAuthWithProfile } from "@/lib/api/auth";
+import { db } from "@/lib/db/client";
+import { mentorshipProfiles, users } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
+import { requireAuth } from "@/lib/api/auth";
 import { fail, ok, serverError } from "@/lib/api/response";
-import { asRecord, stringArrayValue, stringValue } from "@/lib/api/parsing";
 
 export const dynamic = "force-dynamic";
 
@@ -11,21 +12,12 @@ export async function GET() {
     const auth = await requireAuth();
     if ("error" in auth) return fail(auth.error, 401);
 
-    const supabase = await createClient();
-    const { data } = await supabase
-      .from("mentorship_profiles")
-      .select("*, users:user_id(*)");
+    const data = await db
+      .select()
+      .from(mentorshipProfiles)
+      .leftJoin(users, eq(mentorshipProfiles.userId, users.id));
 
-    return ok((data ?? []).map((row: any) => ({
-      user_id: row.user_id,
-      full_name: row.users?.full_name ?? "",
-      role: row.users?.industry ?? row.role ?? "Mentor",
-      city: row.users?.city ?? "",
-      match_score: 0,
-      industries: row.industries ?? [],
-      values_tags: row.values_tags ?? [],
-      bio: row.bio ?? "",
-    })));
+    return ok(data ?? []);
   } catch {
     return serverError();
   }
@@ -33,38 +25,54 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const result = await requireAuthWithProfile();
-    if ("error" in result) return fail("unauthorized", 401);
+    const auth = await requireAuth();
+    if ("error" in auth) return fail(auth.error, 401);
 
-    const body = asRecord(await request.json());
-    const requestedRole = stringValue(body.role);
-    const role =
-      requestedRole === "mentor" || requestedRole === "both" || requestedRole === "mentee"
-        ? requestedRole
-        : "mentee";
+    const body = await request.json();
 
-    const supabase = await createClient();
-    const { data, error } = await supabase
-      .from("mentorship_profiles")
-      .upsert(
-        {
-          user_id: result.userId,
-          role,
-          industries: stringArrayValue(body.industries) ?? [],
-          languages: stringArrayValue(body.languages) ?? ["English"],
-          values_tags: stringArrayValue(body.values_tags) ?? [],
-          career_stage:
-            stringValue(body.career_stage) ?? (result.profile.career_stage ?? null),
-          bio: stringValue(body.bio) ?? "",
-          years_experience: Number(body.years_experience ?? 0),
-        },
-        { onConflict: "user_id" },
-      )
+    // Check if profile exists
+    const existing = await db
       .select()
-      .single();
+      .from(mentorshipProfiles)
+      .where(eq(mentorshipProfiles.userId, auth.userId))
+      .limit(1);
 
-    if (error) return fail("create_failed", 400);
-    return ok(data);
+    if (existing[0]) {
+      // Update existing
+      const updated = await db
+        .update(mentorshipProfiles)
+        .set({
+          role: body.role ?? existing[0].role,
+          industries: body.industries ?? existing[0].industries,
+          languages: body.languages ?? existing[0].languages,
+          valuesTags: body.values_tags ?? existing[0].valuesTags,
+          careerStage: body.career_stage ?? existing[0].careerStage,
+          bio: body.bio ?? existing[0].bio,
+          yearsExperience: body.years_experience ?? existing[0].yearsExperience,
+        })
+        .where(eq(mentorshipProfiles.userId, auth.userId))
+        .returning();
+
+      return ok(updated[0]);
+    }
+
+    // Create new
+    const inserted = await db
+      .insert(mentorshipProfiles)
+      .values({
+        userId: auth.userId,
+        role: body.role ?? "mentor",
+        industries: body.industries ?? [],
+        languages: body.languages ?? [],
+        valuesTags: body.values_tags ?? [],
+        careerStage: body.career_stage ?? null,
+        bio: body.bio ?? null,
+        yearsExperience: body.years_experience ?? null,
+      })
+      .returning();
+
+    if (!inserted[0]) return fail("create_failed", 400);
+    return ok(inserted[0], 201);
   } catch {
     return serverError();
   }

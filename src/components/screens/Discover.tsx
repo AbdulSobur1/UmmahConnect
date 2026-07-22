@@ -70,19 +70,19 @@ export function Discover() {
 
   return (
     <PageTransition>
-      <Stagger as="div" style={{ display: "grid", gap: 24 }}>
+      <Stagger as="div" className="discover-grid">
       {/* SECTION 1 — Search bar */}
       <Input
         icon={<Search size={16} />}
         placeholder="Search professionals, communities, topics..."
         value={search}
         onChange={(event) => setSearch(event.currentTarget.value)}
-        style={{ height: 44, padding: "0 14px", borderRadius: 12 }}
+        className="search-input"
       />
 
       {/* SECTION 2 — People you may know */}
       <section>
-        <h2 style={sectionTitle}>People you may know</h2>
+        <h2 className="section-title">People you may know</h2>
         {suggestedUsers.length === 0 ? (
           <EmptyState
             icon={<Users size={24} />}
@@ -91,25 +91,18 @@ export function Discover() {
             variant="compact"
           />
         ) : (
-          <div style={{ display: "flex", gap: 12, overflowX: "auto", paddingBottom: 6 }}>
+          <div className="discover-scroll">
             {suggestedUsers.slice(0, 8).map((user) => (
               <Card
                 key={user.id}
                 variant="interactive"
                 padding="md"
-                style={{ minWidth: 140, flexShrink: 0, textAlign: "center" }}
+                className="user-card"
               >
-                <div style={{ display: "flex", justifyContent: "center", marginBottom: 8 }}>
+                <div className="avatar-center">
                   <Avatar name={user.full_name} size={52} />
                 </div>
-                <strong
-                  style={{
-                    fontSize: 14,
-                    display: "block",
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                  }}
+                <strong className="user-name"
                 >
                   {user.full_name}
                 </strong>

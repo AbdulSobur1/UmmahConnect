@@ -1,26 +1,34 @@
 import { NextRequest } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { db } from "@/lib/db/client";
+import { messages, messageWeeklyCounts, users } from "@/lib/db/schema";
+import { eq, and, or, asc } from "drizzle-orm";
 import { requireAuth } from "@/lib/api/auth";
 import { mondayWeekStart } from "@/lib/api/business";
 import { messageDto } from "@/lib/api/mappers";
 import { notifyUser } from "@/lib/api/notifications";
+import { triggerEvent } from "@/lib/pusher/server";
 import { fail, ok, serverError } from "@/lib/api/response";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(_: Request, { params }: { params: { userId: string } }) {
+export async function GET(
+  _: Request,
+  { params }: { params: { userId: string } },
+) {
   try {
     const auth = await requireAuth();
     if ("error" in auth) return fail(auth.error, 401);
 
-    const supabase = await createClient();
-    const { data } = await supabase
-      .from("messages")
-      .select("*")
-      .or(
-        `and(sender_id.eq.${auth.userId},receiver_id.eq.${params.userId}),and(sender_id.eq.${params.userId},receiver_id.eq.${auth.userId})`,
+    const data = await db
+      .select()
+      .from(messages)
+      .where(
+        or(
+          and(eq(messages.senderId, auth.userId), eq(messages.receiverId, params.userId)),
+          and(eq(messages.senderId, params.userId), eq(messages.receiverId, auth.userId)),
+        ),
       )
-      .order("created_at", { ascending: true });
+      .orderBy(asc(messages.createdAt));
 
     return ok((data ?? []).map(messageDto as any));
   } catch {
@@ -28,7 +36,10 @@ export async function GET(_: Request, { params }: { params: { userId: string } }
   }
 }
 
-export async function POST(request: NextRequest, { params }: { params: { userId: string } }) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { userId: string } },
+) {
   try {
     const auth = await requireAuth();
     if ("error" in auth) return fail(auth.error, 401);
@@ -38,48 +49,69 @@ export async function POST(request: NextRequest, { params }: { params: { userId:
     if (!content) return fail("content_required", 400);
 
     const weekStart = mondayWeekStart();
-    const supabase = await createClient();
 
     // Check weekly limit
-    const { data: current } = await supabase
-      .from("message_weekly_counts")
-      .select("*")
-      .eq("user_id", auth.userId)
-      .eq("week_start", weekStart)
-      .maybeSingle();
-
-    const count = (current as { count?: number })?.count ?? 0;
-    if (auth.plan === "free" && count >= 10) return fail("weekly_limit_reached", 403);
-
-    const { data: message, error } = await supabase
-      .from("messages")
-      .insert({ sender_id: auth.userId, receiver_id: params.userId, content })
+    const current = await db
       .select()
-      .single();
+      .from(messageWeeklyCounts)
+      .where(
+        and(
+          eq(messageWeeklyCounts.userId, auth.userId),
+          eq(messageWeeklyCounts.weekStart, weekStart),
+        ),
+      )
+      .limit(1);
 
-    if (error || !message) return fail("send_failed", 400);
+    const count = current[0]?.count ?? 0;
+    if (auth.plan === "free" && count >= 10)
+      return fail("weekly_limit_reached", 403);
+
+    const inserted = await db
+      .insert(messages)
+      .values({ senderId: auth.userId, receiverId: params.userId, content })
+      .returning();
+
+    if (!inserted[0]) return fail("send_failed", 400);
 
     // Upsert weekly count
-    await supabase.from("message_weekly_counts").upsert(
-      { user_id: auth.userId, week_start: weekStart, count: count + 1 },
-      { onConflict: "user_id, week_start" },
-    );
+    if (current[0]) {
+      await db
+        .update(messageWeeklyCounts)
+        .set({ count: count + 1 })
+        .where(
+          and(
+            eq(messageWeeklyCounts.userId, auth.userId),
+            eq(messageWeeklyCounts.weekStart, weekStart),
+          ),
+        );
+    } else {
+      await db
+        .insert(messageWeeklyCounts)
+        .values({ userId: auth.userId, weekStart, count: 1 });
+    }
 
-    const { data: sender } = await supabase
-      .from("users")
-      .select("full_name")
-      .eq("id", auth.userId)
-      .single();
+    const sender = await db
+      .select({ fullName: users.fullName })
+      .from(users)
+      .where(eq(users.id, auth.userId))
+      .limit(1);
 
     await notifyUser({
       userId: params.userId,
       type: "message",
-      content: `New message from ${sender?.full_name ?? "Someone"}`,
-      referenceId: message.id,
+      content: `New message from ${sender[0]?.fullName ?? "Someone"}`,
+      referenceId: inserted[0].id,
     });
 
+    // Trigger realtime event via Pusher
+    await triggerEvent(
+      `private-user-${params.userId}`,
+      "new-message",
+      inserted[0],
+    ).catch(() => {});
+
     return ok(
-      { message: messageDto(message as any), weekly_count: count + 1 },
+      { message: messageDto(inserted[0] as any), weekly_count: count + 1 },
       201,
     );
   } catch {

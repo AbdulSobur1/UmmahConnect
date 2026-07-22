@@ -1,5 +1,7 @@
 import { NextRequest } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { db } from "@/lib/db/client";
+import { posts, users } from "@/lib/db/schema";
+import { eq, desc } from "drizzle-orm";
 import { requireAuth, requireAuthWithProfile } from "@/lib/api/auth";
 import { postDto } from "@/lib/api/mappers";
 import { fail, ok, serverError } from "@/lib/api/response";
@@ -11,14 +13,18 @@ export async function GET() {
     const auth = await requireAuth();
     if ("error" in auth) return fail("unauthorized", 401);
 
-    const supabase = await createClient();
-    const { data } = await supabase
-      .from("posts")
-      .select("*, users:user_id(*)")
-      .eq("is_deleted", false)
-      .order("created_at", { ascending: false });
+    const data = await db
+      .select()
+      .from(posts)
+      .leftJoin(users, eq(posts.userId, users.id))
+      .where(eq(posts.isDeleted, false))
+      .orderBy(desc(posts.createdAt));
 
-    return ok((data ?? []).map((row: any) => postDto({ ...row, users: row.users })));
+    return ok(
+      (data ?? []).map((row: any) =>
+        postDto({ ...row.posts, users: row.users }),
+      ),
+    );
   } catch {
     return serverError();
   }
@@ -36,19 +42,17 @@ export async function POST(request: NextRequest) {
         : undefined;
     if (!content) return fail("content_required", 400);
 
-    const supabase = await createClient();
-    const { data, error } = await supabase
-      .from("posts")
-      .insert({
-        user_id: result.userId,
+    const inserted = await db
+      .insert(posts)
+      .values({
+        userId: result.userId,
         content,
-        community_id: typeof body.community_id === "string" ? body.community_id : null,
+        communityId: typeof body.community_id === "string" ? body.community_id : null,
       })
-      .select()
-      .single();
+      .returning();
 
-    if (error || !data) return fail("create_failed", 400);
-    const fullPost = { ...data, users: result.profile };
+    if (!inserted[0]) return fail("create_failed", 400);
+    const fullPost = { ...inserted[0], users: result.profile };
     return ok(postDto(fullPost as any), 201);
   } catch {
     return serverError();

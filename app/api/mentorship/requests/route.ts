@@ -1,42 +1,50 @@
 import { NextRequest } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { requireAuthWithProfile } from "@/lib/api/auth";
-import { notifyUser } from "@/lib/api/notifications";
+import { db } from "@/lib/db/client";
+import { mentorshipRequests } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
+import { requireAuth } from "@/lib/api/auth";
 import { fail, ok, serverError } from "@/lib/api/response";
 
 export const dynamic = "force-dynamic";
 
+export async function GET() {
+  try {
+    const auth = await requireAuth();
+    if ("error" in auth) return fail(auth.error, 401);
+
+    const data = await db
+      .select()
+      .from(mentorshipRequests)
+      .where(
+        eq(mentorshipRequests.menteeId, auth.userId),
+      );
+
+    return ok(data ?? []);
+  } catch {
+    return serverError();
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const result = await requireAuthWithProfile();
-    if ("error" in result) return fail("unauthorized", 401);
+    const auth = await requireAuth();
+    if ("error" in auth) return fail(auth.error, 401);
 
     const body = await request.json();
-    const mentorId =
-      typeof body?.mentor_id === "string" ? body.mentor_id : undefined;
-    if (!mentorId) return fail("mentor_required", 400);
+    if (!body.mentor_id || !body.message)
+      return fail("mentor_id_and_message_required", 400);
 
-    const supabase = await createClient();
-    const { data, error } = await supabase
-      .from("mentorship_requests")
-      .insert({
-        mentee_id: result.userId,
-        mentor_id: mentorId,
-        message: typeof body?.message === "string" ? body.message : null,
+    const inserted = await db
+      .insert(mentorshipRequests)
+      .values({
+        menteeId: auth.userId,
+        mentorId: body.mentor_id,
+        message: body.message,
       })
-      .select()
-      .single();
+      .returning();
 
-    if (error || !data) return fail("create_failed", 400);
-
-    await notifyUser({
-      userId: mentorId,
-      type: "mentor",
-      content: `${result.profile.full_name} requested mentorship`,
-      referenceId: data.id,
-    });
-
-    return ok(data, 201);
+    if (!inserted[0]) return fail("create_failed", 400);
+    return ok(inserted[0], 201);
   } catch {
     return serverError();
   }

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServiceClient } from "@/lib/supabase/service";
+import { db } from "@/lib/db/client";
+import { users, subscriptions, eventListings } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 import { verifyPaystackTransaction } from "@/lib/api/paystack";
 import { notifyAllUsers } from "@/lib/api/notifications";
 
@@ -23,44 +25,45 @@ export async function GET(request: NextRequest) {
 
   const metadata = result.data.metadata;
   const userId = metadata?.user_id;
-  const supabase = createServiceClient();
 
   if (userId && metadata?.payment_type === "event_sponsor" && metadata.event_id) {
-    await supabase
-      .from("event_listings")
-      .update({ is_active: true })
-      .eq("id", metadata.event_id);
+    await db
+      .update(eventListings)
+      .set({ isActive: true })
+      .where(eq(eventListings.id, metadata.event_id));
 
     await notifyAllUsers("New sponsored event is live", metadata.event_id);
   } else if (userId) {
-    await supabase.from("users").update({ plan: "pro" }).eq("id", userId);
+    await db
+      .update(users)
+      .set({ plan: "pro" })
+      .where(eq(users.id, userId));
 
     const now = new Date();
     const periodEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
-    const { data: existing } = await supabase
-      .from("subscriptions")
-      .select("id")
-      .eq("user_id", userId)
-      .eq("status", "active")
-      .maybeSingle();
+    const existing = await db
+      .select()
+      .from(subscriptions)
+      .where(eq(subscriptions.userId, userId))
+      .limit(1);
 
     const subscription = {
-      user_id: userId,
+      userId,
       plan: "pro",
-      paystack_customer_code: result.data.customer?.customer_code,
+      paystackCustomerCode: result.data.customer?.customer_code,
       status: "active",
-      current_period_start: now.toISOString(),
-      current_period_end: periodEnd.toISOString(),
+      currentPeriodStart: now,
+      currentPeriodEnd: periodEnd,
     };
 
-    if (existing?.id) {
-      await supabase
-        .from("subscriptions")
-        .update(subscription)
-        .eq("id", existing.id);
+    if (existing[0]) {
+      await db
+        .update(subscriptions)
+        .set(subscription)
+        .where(eq(subscriptions.id, existing[0].id));
     } else {
-      await supabase.from("subscriptions").insert(subscription);
+      await db.insert(subscriptions).values(subscription);
     }
   }
 

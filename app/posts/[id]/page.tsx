@@ -4,9 +4,11 @@ import { notFound } from "next/navigation";
 import { PublicLayout } from "@/components/layouts/PublicLayout";
 import { formatPostTime } from "@/lib/utils/time";
 import { PostPublicClient } from "@/components/public/PostPublicClient";
+import { db } from "@/lib/db/client";
+import { posts, comments, users } from "@/lib/db/schema";
+import { eq, asc } from "drizzle-orm";
 import { postDto, publicProfileDto } from "@/lib/api/mappers";
 import { getSessionUser } from "@/lib/auth/session";
-import { createClient } from "@/lib/supabase/server";
 
 type PageProps = { params: { id: string } };
 
@@ -20,28 +22,28 @@ type PostWithComments = ReturnType<typeof postDto> & {
 };
 
 async function fetchPost(id: string): Promise<PostWithComments | null> {
-  const supabase = await createClient();
+  const postResult = await db
+    .select()
+    .from(posts)
+    .leftJoin(users, eq(posts.userId, users.id))
+    .where(eq(posts.id, id))
+    .limit(1);
 
-  const { data: post } = await supabase
-    .from("posts")
-    .select("*, users:user_id(*)")
-    .eq("id", id)
-    .single();
+  if (!postResult[0]) return null;
 
-  if (!post) return null;
-
-  const { data: commentRows } = await supabase
-    .from("comments")
-    .select("*, users:user_id(*)")
-    .eq("post_id", id)
-    .order("created_at", { ascending: true });
+  const commentRows = await db
+    .select()
+    .from(comments)
+    .leftJoin(users, eq(comments.userId, users.id))
+    .where(eq(comments.postId, id))
+    .orderBy(asc(comments.createdAt));
 
   return {
-    ...postDto({ ...post, users: post.users } as any),
+    ...postDto({ ...postResult[0].posts, users: postResult[0].users } as any),
     comments: (commentRows ?? []).map((row: any) => ({
-      id: row.id,
-      content: row.content,
-      created_at: row.created_at ?? "",
+      id: row.comments.id,
+      content: row.comments.content,
+      created_at: row.comments.createdAt ?? "",
       user: row.users ? publicProfileDto(row.users) : null,
     })),
   };

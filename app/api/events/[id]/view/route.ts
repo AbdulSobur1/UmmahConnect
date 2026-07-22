@@ -1,19 +1,30 @@
-import { createClient } from "@/lib/supabase/server";
-import { ok } from "@/lib/api/helpers";
+import { db } from "@/lib/db/client";
+import { eventListings } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
+import { fail, ok, serverError } from "@/lib/api/response";
 
-export async function POST(_: Request, { params }: { params: { id: string } }) {
-  const supabase = await createClient();
+export const dynamic = "force-dynamic";
 
-  const { data: existing } = await supabase
-    .from("event_listings")
-    .select("views_count")
-    .eq("id", params.id)
-    .single();
+export async function POST(
+  _: Request,
+  { params }: { params: { id: string } },
+) {
+  try {
+    const existing = await db
+      .select()
+      .from(eventListings)
+      .where(eq(eventListings.id, params.id))
+      .limit(1);
 
-  await supabase
-    .from("event_listings")
-    .update({ views_count: (existing?.views_count ?? 0) + 1 })
-    .eq("id", params.id);
+    if (!existing[0]) return fail("not_found", 404);
 
-  return ok({ tracked: true });
+    await db
+      .update(eventListings)
+      .set({ viewsCount: (existing[0].viewsCount ?? 0) + 1 })
+      .where(eq(eventListings.id, params.id));
+
+    return ok({ viewed: true });
+  } catch {
+    return serverError();
+  }
 }

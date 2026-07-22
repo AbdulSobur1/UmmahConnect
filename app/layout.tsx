@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { DM_Sans, Playfair_Display } from "next/font/google";
+import { ClerkProvider } from "@clerk/nextjs";
 import { Providers } from "@/components/Providers";
 import "./globals.css";
 
@@ -17,20 +18,42 @@ const dmSans = DM_Sans({
 
 export const metadata: Metadata = {
   title: "Ummah Connect - Where your deen and your career are never in conflict.",
-  description: "The global professional network for Muslim professionals and creatives. Connect with people in your niche, find halal opportunities, and grow your career — guided by your values.",
-  keywords: ["Muslim professional network", "halal careers", "Islamic networking", "Muslim community", "professional networking"],
+  description:
+    "The global professional network for Muslim professionals and creatives. Connect with people in your niche, find halal opportunities, and grow your career — guided by your values.",
+  keywords: [
+    "Muslim professional network",
+    "halal careers",
+    "Islamic networking",
+    "Muslim community",
+    "professional networking",
+  ],
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html lang="en" className={`${playfair.variable} ${dmSans.variable}`}>
-      <body>
-        <div className="app-shell">
-          <Providers>
-            {children}
-          </Providers>
-        </div>
-      </body>
-    </html>
+    <ClerkProvider
+      appearance={{
+        variables: {
+          colorPrimary: "#1A6B5C",
+          colorBackground: "#0D1B1E",
+          colorText: "#ffffff",
+          colorInputBackground: "#132420",
+          colorInputText: "#ffffff",
+          borderRadius: "12px",
+        },
+      }}
+    >
+      <html lang="en" className={`${playfair.variable} ${dmSans.variable}`}>
+        <body>
+          <div className="app-shell">
+            <Providers>{children}</Providers>
+          </div>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

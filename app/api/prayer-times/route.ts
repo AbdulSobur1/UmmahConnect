@@ -1,24 +1,20 @@
-import { createClient } from "@/lib/supabase/server";
-import { requireAuth } from "@/lib/api/auth";
+import { NextRequest } from "next/server";
+import { db } from "@/lib/db/client";
+import { users } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 import { getNextPrayer } from "@/lib/api/prayer";
-import { fail, ok, serverError } from "@/lib/api/response";
+import { ok, err } from "@/lib/api/helpers";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const city = searchParams.get("city") || "Lagos";
+
   try {
-    const auth = await requireAuth();
-    if ("error" in auth) return fail(auth.error, 401);
-
-    const supabase = await createClient();
-    const { data: profile } = await supabase
-      .from("users")
-      .select("city")
-      .eq("id", auth.userId)
-      .single();
-
-    return ok(await getNextPrayer(profile?.city ?? "Lagos"));
+    const prayer = await getNextPrayer(city);
+    return ok(prayer);
   } catch {
-    return serverError();
+    return err("Failed to fetch prayer times", 500);
   }
 }

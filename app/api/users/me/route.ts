@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/server";
+import { db } from "@/lib/db/client";
+import { users } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
 
@@ -10,14 +12,13 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
   }
 
-  const supabase = await createClient();
-  const { data: user } = await supabase
-    .from("users")
-    .select("*")
-    .eq("id", session.user.id)
-    .single();
+  const user = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, session.user.id))
+    .limit(1);
 
-  return NextResponse.json(user ?? null);
+  return NextResponse.json(user[0] ?? null);
 }
 
 export async function PATCH(req: Request) {
@@ -29,27 +30,39 @@ export async function PATCH(req: Request) {
   const body = await req.json();
 
   const allowed = [
-    "name", "full_name", "fullName",
-    "bio", "industry", "careerStage", "career_stage",
-    "city", "skills", "openToOpportunities", "open_to_opportunities",
-    "avatarUrl", "avatar_url", "bannerUrl", "banner_url",
-    "showPhoto", "show_photo",
+    "name",
+    "full_name",
+    "fullName",
+    "bio",
+    "industry",
+    "careerStage",
+    "career_stage",
+    "city",
+    "skills",
+    "openToOpportunities",
+    "open_to_opportunities",
+    "avatarUrl",
+    "avatar_url",
+    "bannerUrl",
+    "banner_url",
+    "showPhoto",
+    "show_photo",
   ];
 
   const fieldMap: Record<string, string> = {
-    name: "full_name",
-    full_name: "full_name",
-    fullName: "full_name",
-    avatar_url: "avatar_url",
-    avatarUrl: "avatar_url",
-    banner_url: "banner_url",
-    bannerUrl: "banner_url",
-    career_stage: "career_stage",
-    careerStage: "career_stage",
-    open_to_opportunities: "open_to_opportunities",
-    openToOpportunities: "open_to_opportunities",
-    show_photo: "show_photo",
-    showPhoto: "show_photo",
+    name: "fullName",
+    full_name: "fullName",
+    fullName: "fullName",
+    avatar_url: "avatarUrl",
+    avatarUrl: "avatarUrl",
+    banner_url: "bannerUrl",
+    bannerUrl: "bannerUrl",
+    career_stage: "careerStage",
+    careerStage: "careerStage",
+    open_to_opportunities: "openToOpportunities",
+    openToOpportunities: "openToOpportunities",
+    show_photo: "showPhoto",
+    showPhoto: "showPhoto",
   };
 
   const update: Record<string, unknown> = {};
@@ -58,17 +71,12 @@ export async function PATCH(req: Request) {
     const dbKey = fieldMap[key] ?? key;
     update[dbKey] = body[key];
   }
-  update.updated_at = new Date().toISOString();
+  update.updatedAt = new Date().toISOString();
 
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("users")
-    .update(update)
-    .eq("id", session.user.id);
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
-  }
+  await db
+    .update(users)
+    .set(update as any)
+    .where(eq(users.id, session.user.id));
 
   return NextResponse.json({ success: true });
 }

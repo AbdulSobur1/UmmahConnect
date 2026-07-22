@@ -1,42 +1,34 @@
 import { NextRequest } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { withHandler, ok, err } from "@/lib/api/helpers";
-import { communityDto, postDto } from "@/lib/api/mappers";
+import { db } from "@/lib/db/client";
+import { communities, posts, users } from "@/lib/db/schema";
+import { eq, desc } from "drizzle-orm";
+import { fail, ok, serverError } from "@/lib/api/response";
 
 export const dynamic = "force-dynamic";
 
-export const GET = withHandler(async (_req: NextRequest, ctx?: unknown) => {
-  const params = (ctx as { params: { id: string } }).params;
-  const supabase = await createClient();
+export async function GET(
+  _: NextRequest,
+  { params }: { params: { id: string } },
+) {
+  try {
+    const communityData = await db
+      .select()
+      .from(communities)
+      .where(eq(communities.id, params.id))
+      .limit(1);
 
-  const { data: community } = await supabase
-    .from("communities")
-    .select("*")
-    .eq("id", params.id)
-    .single();
+    if (!communityData[0]) return fail("not_found", 404);
 
-  if (!community) {
-    return err("Community not found", 404);
+    const postRows = await db
+      .select()
+      .from(posts)
+      .leftJoin(users, eq(posts.userId, users.id))
+      .where(eq(posts.communityId, params.id))
+      .orderBy(desc(posts.createdAt))
+      .limit(20);
+
+    return ok({ community: communityData[0], posts: postRows ?? [] });
+  } catch {
+    return serverError();
   }
-
-  if (community.is_private) {
-    return ok({
-      ...communityDto(community as any),
-      is_private: true,
-    });
-  }
-
-  const { data: postRows } = await supabase
-    .from("posts")
-    .select("*, users:user_id(*)")
-    .eq("community_id", params.id)
-    .order("created_at", { ascending: false })
-    .limit(20);
-
-  return ok({
-    ...communityDto(community as any),
-    posts: (postRows ?? []).map((row: any) =>
-      postDto({ ...row, users: row.users }),
-    ),
-  });
-});
+}

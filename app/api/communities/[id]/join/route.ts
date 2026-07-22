@@ -1,42 +1,45 @@
-import { createClient } from "@/lib/supabase/server";
+import { NextRequest } from "next/server";
+import { db } from "@/lib/db/client";
+import { communityMembers, communities } from "@/lib/db/schema";
+import { eq, and, sql } from "drizzle-orm";
 import { requireAuth } from "@/lib/api/auth";
 import { fail, ok, serverError } from "@/lib/api/response";
 
 export const dynamic = "force-dynamic";
 
-export async function POST(_: Request, { params }: { params: { id: string } }) {
+export async function POST(
+  _: NextRequest,
+  { params }: { params: { id: string } },
+) {
   try {
     const auth = await requireAuth();
     if ("error" in auth) return fail(auth.error, 401);
 
-    const supabase = await createClient();
-    const { error } = await supabase
-      .from("community_members")
-      .upsert(
-        { community_id: params.id, user_id: auth.userId },
-        { onConflict: "community_id, user_id", ignoreDuplicates: true },
-      );
+    // Check if already a member
+    const existing = await db
+      .select()
+      .from(communityMembers)
+      .where(
+        and(
+          eq(communityMembers.communityId, params.id),
+          eq(communityMembers.userId, auth.userId),
+        ),
+      )
+      .limit(1);
 
-    if (error) return fail("join_failed", 400);
-    return ok({ joined: true });
-  } catch {
-    return serverError();
-  }
-}
+    if (existing[0]) return fail("already_member", 400);
 
-export async function DELETE(_: Request, { params }: { params: { id: string } }) {
-  try {
-    const auth = await requireAuth();
-    if ("error" in auth) return fail(auth.error, 401);
+    await db
+      .insert(communityMembers)
+      .values({ communityId: params.id, userId: auth.userId });
 
-    const supabase = await createClient();
-    await supabase
-      .from("community_members")
-      .delete()
-      .eq("community_id", params.id)
-      .eq("user_id", auth.userId);
+    // Update member count
+    await db
+      .update(communities)
+      .set({ memberCount: sql`member_count + 1` })
+      .where(eq(communities.id, params.id));
 
-    return ok({ joined: false });
+    return ok({ joined: true }, 201);
   } catch {
     return serverError();
   }

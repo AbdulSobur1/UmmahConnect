@@ -1,22 +1,22 @@
-import { createClient } from "@/lib/supabase/server";
+import { db } from "@/lib/db/client";
+import { notifications } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 import { requireAuth } from "@/lib/api/auth";
 import { fail, ok, serverError } from "@/lib/api/response";
 
 export const dynamic = "force-dynamic";
 
-export async function PATCH() {
+export async function POST() {
   try {
     const auth = await requireAuth();
     if ("error" in auth) return fail(auth.error, 401);
 
-    const supabase = await createClient();
-    const { error } = await supabase
-      .from("notifications")
-      .update({ is_read: true })
-      .eq("user_id", auth.userId);
+    await db
+      .update(notifications)
+      .set({ isRead: true })
+      .where(eq(notifications.userId, auth.userId));
 
-    if (error) return fail("update_failed", 400);
-    return ok({ read: true });
+    return ok({ success: true });
   } catch {
     return serverError();
   }
