@@ -25,6 +25,11 @@ drizzle/
 *.sw?
 .DS_Store
 
+# Windows reserved names
+nul
+NUL
+Nul
+
 # Debug logs
 *.log
 npm-debug.log*
