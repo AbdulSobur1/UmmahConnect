@@ -3,10 +3,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   CalendarDays, Heart, MessageCircle, Send, Share2, Star, Sunrise,
-  MessageSquare, Image, Globe, FileText,
+  MessageSquare, Image, Globe, FileText, Sparkles,
 } from "lucide-react";
 import { FormEvent, useState } from "react";
 import { Avatar } from "@/components/Avatar";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 import { ProgressBar, Tag } from "@/components/ui/Common";
 import { apiGet, apiSend } from "@/lib/api/client";
 import { formatPostTime } from "@/lib/utils/time";
@@ -17,10 +19,10 @@ type Weekly = { count: number; remaining: number; week_start: string };
 
 function LoadingFeed() {
   return (
-    <div className="grid">
-      <div className="skeleton" />
-      <div className="skeleton" />
-      <div className="skeleton" />
+    <div className="grid stagger-children">
+      <div className="skeleton" style={{ minHeight: 120 }} />
+      <div className="skeleton" style={{ minHeight: 160 }} />
+      <div className="skeleton" style={{ minHeight: 100 }} />
     </div>
   );
 }
@@ -34,9 +36,26 @@ export function HomeFeed() {
   const prayer = useQuery({ queryKey: ["prayer-times"], queryFn: () => apiGet<Prayer>("/api/prayer-times") });
   const weekly = useQuery({ queryKey: ["weekly-count"], queryFn: () => apiGet<Weekly>("/api/messages/weekly-count") });
   const [expandedPosts, setExpandedPosts] = useState<Set<string>>(new Set());
+  const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
+  const [animatingLike, setAnimatingLike] = useState<string | null>(null);
   const createPost = useMutation({
     mutationFn: (content: string) => apiSend<Post>("/api/posts", "POST", { content }),
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["posts"] }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["posts"] });
+    },
+  });
+  const toggleLike = useMutation({
+    mutationFn: (postId: string) => apiSend<{ liked: boolean; likes_count: number }>(`/api/posts/${postId}/like`, "POST"),
+    onSuccess: (data, postId) => {
+      setAnimatingLike(postId);
+      setTimeout(() => setAnimatingLike(null), 300);
+      setLikedPosts((prev) => {
+        const next = new Set(prev);
+        if (data.liked) next.add(postId);
+        else next.delete(postId);
+        return next;
+      });
+    },
   });
 
   function submitPost(event: FormEvent<HTMLFormElement>) {
@@ -62,12 +81,14 @@ export function HomeFeed() {
   }
 
   return (
-    <div>
+    <div className="animate-fade-in">
       {/* Feed header */}
       <div style={{ marginBottom: 16 }}>
-        <div style={{ fontSize: 16, color: "var(--color-muted-light)", marginBottom: 8 }}>{greeting}</div>
+        <div style={{ fontSize: 16, color: "var(--color-text-muted)", marginBottom: 8 }} className="animate-fade-in">
+          {greeting}
+        </div>
         {/* Prayer time strip */}
-        <div className="card" style={{
+        <div className="card hover-lift" style={{
           padding: "8px 14px",
           display: "flex",
           alignItems: "center",
@@ -86,68 +107,105 @@ export function HomeFeed() {
         </div>
 
         {/* Compose box */}
-        <form className="card" onSubmit={submitPost} style={{ padding: 14 }}>
+        <form className="card transition-normal" onSubmit={submitPost} style={{
+          padding: 14,
+          transition: "border-color 0.2s ease, box-shadow 0.2s ease",
+        }}
+          onFocusCapture={(e) => {
+            const card = e.currentTarget;
+            card.style.borderColor = "rgba(26,107,92,0.4)";
+            card.style.boxShadow = "0 0 0 3px rgba(26,107,92,0.1)";
+          }}
+          onBlurCapture={(e) => {
+            const card = e.currentTarget;
+            card.style.borderColor = "rgba(255,255,255,0.06)";
+            card.style.boxShadow = "none";
+          }}
+        >
           <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
             <Avatar name={currentUser?.full_name ?? "User"} size={36} />
             <textarea
-              className="textarea"
+              className="textarea transition-normal"
               name="content"
               placeholder="Share something with your community..."
               rows={2}
-              style={{ resize: "none", minHeight: 44, fontSize: 14, padding: "10px 14px" }}
+              style={{
+                resize: "none",
+                minHeight: 44,
+                fontSize: 14,
+                padding: "10px 14px",
+                transition: "min-height 0.2s ease",
+              }}
+              onFocus={(e) => { e.currentTarget.style.minHeight = "72px"; }}
+              onBlur={(e) => { if (!e.currentTarget.value) e.currentTarget.style.minHeight = "44px"; }}
             />
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 10 }}>
             <div style={{ display: "flex", gap: 6 }}>
-              <button type="button" className="btn-ghost" style={{ fontSize: 12, padding: "4px 10px", minHeight: 32, display: "flex", alignItems: "center", gap: 4 }}>
-                <Image size={14} /> Photo
-              </button>
-              <button type="button" className="btn-ghost" style={{ fontSize: 12, padding: "4px 10px", minHeight: 32, display: "flex", alignItems: "center", gap: 4 }}>
-                <Globe size={14} /> Community
-              </button>
-              <button type="button" className="btn-ghost" style={{ fontSize: 12, padding: "4px 10px", minHeight: 32, display: "flex", alignItems: "center", gap: 4 }}>
-                <FileText size={14} /> Article
-              </button>
+              {[
+                { icon: Image, label: "Photo" },
+                { icon: Globe, label: "Community" },
+                { icon: FileText, label: "Article" },
+              ].map(({ icon: Icon, label }) => (
+                <Button
+                  key={label}
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  icon={<Icon size={14} />}
+                >
+                  {label}
+                </Button>
+              ))}
             </div>
-            <button className="btn btn-primary" disabled={createPost.isPending} style={{ minHeight: 36, fontSize: 13, padding: "0 16px" }}>
-              <Send size={14} /> Post
-            </button>
+            <Button
+              type="submit"
+              disabled={createPost.isPending}
+              loading={createPost.isPending}
+              icon={<Send size={14} />}
+              style={{ minHeight: 36, fontSize: 13, padding: "0 16px" }}
+            >
+              {createPost.isPending ? "Posting..." : "Post"}
+            </Button>
           </div>
         </form>
       </div>
 
       {/* Feed grid */}
       <div className="grid two-col" style={{ gap: 16 }}>
-        <section className="grid" style={{ gap: 12 }}>
+        <section className="grid stagger-children" style={{ gap: 12 }}>
           {/* Error state */}
           {posts.error ? (
-            <div className="card" style={{ padding: 16, textAlign: "center" }}>
-              <p className="muted" style={{ fontSize: 14 }}>Couldn&apos;t load your feed.</p>
-              <button className="btn btn-accent" style={{ fontSize: 13, minHeight: 36 }} onClick={() => void posts.refetch()}>Retry</button>
-            </div>
+            <Card padding="xl" style={{ textAlign: "center" }}>
+              <div style={{ fontSize: 40, marginBottom: 10 }}>⚠️</div>
+              <strong style={{ fontSize: 18 }}>Couldn&apos;t load your feed</strong>
+              <p className="muted" style={{ fontSize: 14, margin: "6px 0 16px" }}>Check your connection and try again.</p>
+              <Button variant="accent" size="sm" onClick={() => void posts.refetch()}>Retry</Button>
+            </Card>
           ) : posts.isLoading ? (
             <LoadingFeed />
           ) : (posts.data ?? []).length === 0 ? (
-            <div className="card" style={{ padding: 24, textAlign: "center" }}>
-              <div style={{ fontSize: 40, marginBottom: 10 }}>🌙</div>
+            <Card padding="xl" style={{ textAlign: "center" }}>
+              <div style={{ fontSize: 48, marginBottom: 10 }}>🌙</div>
               <strong style={{ fontSize: 18 }}>No posts yet</strong>
-              <p className="muted" style={{ marginTop: 6, fontSize: 14 }}>Be the first to share something meaningful.</p>
-            </div>
+              <p className="muted" style={{ marginTop: 6, fontSize: 14, maxWidth: 300, margin: "6px auto 0" }}>Be the first to share something meaningful with your community.</p>
+              <Sparkles size={20} style={{ color: "var(--color-accent)", margin: "12px auto 0" }} />
+            </Card>
           ) : (
-            (posts.data ?? []).map((post) => {
+            (posts.data ?? []).map((post, index) => {
               const isExpanded = expandedPosts.has(post.id);
               const contentLong = post.content.length > 200;
               const displayContent = isExpanded || !contentLong ? post.content : post.content.slice(0, 200) + "...";
+              const isLiked = likedPosts.has(post.id);
+              const isAnimatingLike = animatingLike === post.id;
 
               return (
-                <article
+                <Card
                   key={post.id}
-                  className="card"
+                  variant="interactive"
+                  padding="md"
                   style={{
-                    padding: 14,
-                    background: "rgba(255,255,255,0.04)",
-                    border: "1px solid rgba(255,255,255,0.08)",
-                    borderRadius: 16,
+                    animationDelay: `${index * 0.05}s`,
                   }}
                 >
                   {/* Header */}
@@ -157,11 +215,11 @@ export function HomeFeed() {
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                         <div>
                           <strong style={{ fontSize: 15 }}>{post.user?.full_name ?? "Unknown"}</strong>
-                          <div style={{ fontSize: 13, color: "var(--color-muted-light)" }}>
+                          <div style={{ fontSize: 13, color: "var(--color-text-muted)" }}>
                             {[post.user?.industry, post.user?.city].filter(Boolean).join(" · ") || ""}
                           </div>
                         </div>
-                        <span style={{ fontSize: 12, color: "var(--color-muted-light)", whiteSpace: "nowrap", marginLeft: 8 }}>
+                        <span style={{ fontSize: 12, color: "var(--color-text-muted)", whiteSpace: "nowrap", marginLeft: 8 }}>
                           {formatPostTime(post.created_at)}
                         </span>
                       </div>
@@ -174,8 +232,11 @@ export function HomeFeed() {
                       {displayContent}
                     </p>
                     {contentLong && (
-                      <button className="btn-link" style={{ fontSize: 13, marginTop: 4, color: "var(--color-muted-light)" }}
-                        onClick={() => toggleExpand(post.id)}>
+                      <button
+                        className="btn-link transition-fast"
+                        style={{ fontSize: 13, marginTop: 4, color: "var(--color-text-muted)" }}
+                        onClick={() => toggleExpand(post.id)}
+                      >
                         {isExpanded ? "See less" : "See more"}
                       </button>
                     )}
@@ -188,31 +249,50 @@ export function HomeFeed() {
                     gap: 16,
                     marginTop: 12,
                     paddingTop: 10,
-                    borderTop: "1px solid rgba(255,255,255,0.06)",
+                    borderTop: "1px solid var(--color-line-light)",
                     fontSize: 14,
-                    color: "var(--color-muted-light)",
+                    color: "var(--color-text-muted)",
                   }}>
-                    <button className="btn-link" style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 14, color: "inherit" }}>
-                      <Heart size={16} /> {post.likes_count}
-                    </button>
-                    <button className="btn-link" style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 14, color: "inherit" }}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      style={{
+                        color: isLiked ? "#f87171" : "inherit",
+                        padding: "4px 6px",
+                        minHeight: "auto",
+                        border: 0,
+                        background: "transparent",
+                      }}
+                      onClick={() => toggleLike.mutate(post.id)}
+                    >
+                      <Heart
+                        size={16}
+                        style={{
+                          transition: "transform 0.15s ease",
+                          transform: isAnimatingLike ? "scale(1.3)" : "scale(1)",
+                        }}
+                        fill={isLiked ? "#f87171" : "none"}
+                      />{" "}
+                      {post.likes_count}
+                    </Button>
+                    <Button variant="ghost" size="sm" style={{ padding: "4px 6px", minHeight: "auto", border: 0, background: "transparent" }}>
                       <MessageCircle size={16} /> {post.comments_count}
-                    </button>
-                    <button className="btn-link" style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 14, color: "inherit", marginLeft: "auto" }}>
+                    </Button>
+                    <Button variant="ghost" size="sm" style={{ padding: "4px 6px", minHeight: "auto", border: 0, background: "transparent", marginLeft: "auto" }}>
                       <Share2 size={16} /> Share
-                    </button>
+                    </Button>
                   </div>
-                </article>
+                </Card>
               );
             })
           )}
         </section>
 
         {/* Sidebar */}
-        <aside className="grid" style={{ gap: 12, alignContent: "start" }}>
+        <aside className="grid stagger-children" style={{ gap: 12, alignContent: "start" }}>
           {/* Sponsored event */}
           {event ? (
-            <article className="sponsored-card" style={{ padding: 14 }}>
+            <article className="sponsored-card hover-lift transition-normal" style={{ padding: 14 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                 <span style={{
                   fontSize: 10,
@@ -233,7 +313,7 @@ export function HomeFeed() {
                 {event.event_date} · {event.location_detail}
               </p>
               <button
-                className="btn btn-accent"
+                className="btn btn-accent transition-fast hover-lift"
                 style={{ marginTop: 10, fontSize: 13, minHeight: 36, padding: "0 14px" }}
                 onClick={() => void apiSend(`/api/events/${event.id}/click`, "POST")}
               >
@@ -244,25 +324,25 @@ export function HomeFeed() {
 
           {/* Community quick-links */}
           {(communities.data ?? []).length > 0 ? (
-            <article className="card" style={{ padding: 14 }}>
+            <article className="card transition-normal" style={{ padding: 14 }}>
               <strong style={{ fontSize: 14, marginBottom: 10, display: "block" }}>Community quick-links</strong>
-              <div className="community-scroll" style={{ display: "flex", gap: 6, overflowX: "auto", marginTop: 6 }}>
+              <div className="community-scroll" style={{ display: "flex", gap: 6, overflowX: "auto", marginTop: 6, paddingBottom: 4 }}>
                 {(communities.data ?? []).slice(0, 6).map((community) => (
-                  <Tag key={community.id}>{community.name}</Tag>
+                  <Tag key={community.id} className="transition-fast hover-lift" style={{ cursor: "pointer" }}>{community.name}</Tag>
                 ))}
               </div>
             </article>
           ) : null}
 
-          <article className="card" style={{ padding: 14 }}>
+          <article className="card transition-normal" style={{ padding: 14 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <MessageSquare size={15} color="var(--color-muted-light)" />
+              <MessageSquare size={15} color="var(--color-text-muted)" />
               <strong style={{ fontSize: 13 }}>Weekly messaging</strong>
             </div>
             <div style={{ marginTop: 8 }}>
               <ProgressBar value={weeklyCount} height={6} />
             </div>
-            <p style={{ margin: "4px 0 0", fontSize: 12, color: "var(--color-muted-light)" }}>
+            <p style={{ margin: "4px 0 0", fontSize: 12, color: "var(--color-text-muted)" }}>
               {weeklyCount} of 10 messages used this week
             </p>
           </article>

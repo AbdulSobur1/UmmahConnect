@@ -4,10 +4,15 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Briefcase, Plus, Search, Bookmark, ShieldCheck, ArrowRight, Home } from "lucide-react";
 import { FormEvent, useMemo, useState } from "react";
 import { HalalBadge } from "@/components/HalalBadge";
-import { Modal } from "@/components/Modal";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Modal } from "@/components/ui/Modal";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { ErrorState, IconBox, Tag } from "@/components/ui/Common";
 import { PageTransition } from "@/components/ui/PageTransition";
+import { Stagger } from "@/components/ui/PageTransition";
 import { apiGet, apiSend } from "@/lib/api/client";
 import { formatPostTime } from "@/lib/utils/time";
 import type { Job, User } from "@/types";
@@ -80,31 +85,18 @@ export function Jobs() {
           position: "sticky",
           top: 72,
           zIndex: 10,
-          background: "#0D1B1E",
+          background: "var(--color-bg-dark)",
           marginBottom: 14,
         }}
       >
         {/* Search bar */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            background: "#132420",
-            borderRadius: 12,
-            padding: "0 12px",
-            height: 44,
-          }}
-        >
-          <Search size={16} color="rgba(255,255,255,0.55)" />
-          <input
-            className="input"
-            placeholder="Search jobs, companies..."
-            style={{ border: 0, padding: 0, background: "transparent", height: "100%" }}
-            value={search}
-            onChange={(event) => setSearch(event.currentTarget.value)}
-          />
-        </div>
+        <Input
+          icon={<Search size={16} />}
+          placeholder="Search jobs, companies..."
+          value={search}
+          onChange={(event) => setSearch(event.currentTarget.value)}
+          style={{ height: 44, padding: "0 12px", borderRadius: 12 }}
+        />
         {/* Filter pills */}
         <div
           style={{
@@ -116,42 +108,27 @@ export function Jobs() {
           }}
         >
           {filters.map((filter) => (
-            <button
+            <Button
               key={filter}
+              variant={activeFilter === filter ? "primary" : "ghost"}
+              size="sm"
               onClick={() => setActiveFilter(filter)}
-              style={{
-                fontSize: 12,
-                padding: "4px 12px",
-                minHeight: 32,
-                whiteSpace: "nowrap",
-                borderRadius: 100,
-                border: activeFilter === filter ? "none" : "1px solid rgba(255,255,255,0.08)",
-                background: activeFilter === filter ? "#1A6B5C" : "transparent",
-                color: activeFilter === filter ? "#fff" : "rgba(255,255,255,0.55)",
-                cursor: "pointer",
-                fontWeight: 600,
-              }}
             >
               {filter}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
 
       {/* Job cards */}
-      <div style={{ display: "grid", gap: 10 }}>
+      <Stagger as="div" style={{ display: "grid", gap: 10 }}>
         {filteredJobs.map((job) => {
           const isSaved = savedJobs.has(job.id);
           return (
-            <article
+            <Card
               key={job.id}
-              style={{
-                background: "#132420",
-                border: "1px solid rgba(255,255,255,0.06)",
-                borderRadius: 16,
-                padding: 16,
-                cursor: "pointer",
-              }}
+              variant="interactive"
+              padding="md"
               onClick={() => setSelectedJob(job)}
             >
               <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
@@ -161,13 +138,13 @@ export function Jobs() {
                     width: 44,
                     height: 44,
                     borderRadius: "50%",
-                    background: "rgba(94,205,181,0.1)",
+                    background: "var(--color-success-light)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     fontWeight: 700,
                     fontSize: 16,
-                    color: "#5ECDB5",
+                    color: "var(--color-success)",
                     flexShrink: 0,
                   }}
                 >
@@ -178,14 +155,14 @@ export function Jobs() {
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
                     <div>
                       <strong style={{ fontSize: 16 }}>{job.title}</strong>
-                      <p style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", margin: "2px 0 0" }}>
+                      <p style={{ fontSize: 13, color: "var(--color-text-muted)", margin: "2px 0 0" }}>
                         {job.company} · {job.location} · {job.job_type}
                       </p>
                     </div>
                     <span
                       style={{
                         fontSize: 12,
-                        color: "rgba(255,255,255,0.55)",
+                        color: "var(--color-text-muted)",
                         whiteSpace: "nowrap",
                       }}
                     >
@@ -204,22 +181,7 @@ export function Jobs() {
                     }}
                   >
                     {job.is_halal_verified && (
-                      <span
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 4,
-                          padding: "3px 8px",
-                          borderRadius: 100,
-                          fontSize: 11,
-                          fontWeight: 700,
-                          background: "rgba(94,205,181,0.1)",
-                          color: "#5ECDB5",
-                          border: "1px solid rgba(94,205,181,0.16)",
-                        }}
-                      >
-                        <ShieldCheck size={11} /> HALAL VERIFIED
-                      </span>
+                      <HalalBadge />
                     )}
                     {job.is_remote && (
                       <span
@@ -231,8 +193,8 @@ export function Jobs() {
                           borderRadius: 100,
                           fontSize: 11,
                           fontWeight: 700,
-                          background: "rgba(255,255,255,0.06)",
-                          color: "rgba(255,255,255,0.55)",
+                          background: "var(--color-bg-hover)",
+                          color: "var(--color-text-muted)",
                         }}
                       >
                         <Home size={11} /> Remote
@@ -247,78 +209,51 @@ export function Jobs() {
                       alignItems: "center",
                       gap: 10,
                       marginTop: 10,
-                      borderTop: "1px solid rgba(255,255,255,0.06)",
+                      borderTop: "1px solid var(--color-line-light)",
                       paddingTop: 10,
                     }}
                   >
-                    <button
-                      style={{
-                        fontSize: 12,
-                        padding: "4px 8px",
-                        minHeight: 32,
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 4,
-                        borderRadius: 100,
-                        border: "1px solid rgba(255,255,255,0.08)",
-                        background: "transparent",
-                        color: "rgba(255,255,255,0.55)",
-                        cursor: "pointer",
-                      }}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      icon={<Bookmark size={14} fill={isSaved ? "var(--color-primary)" : "none"} />}
                       onClick={(e) => { e.stopPropagation(); toggleSave(job.id); }}
                     >
-                      <Bookmark size={14} fill={isSaved ? "#1A6B5C" : "none"} />
                       {isSaved ? "Saved" : "Save"}
-                    </button>
-                    <button
-                      style={{
-                        fontSize: 12,
-                        padding: "4px 14px",
-                        minHeight: 32,
-                        marginLeft: "auto",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 4,
-                        borderRadius: 100,
-                        border: "none",
-                        background: "#1A6B5C",
-                        color: "#fff",
-                        cursor: "pointer",
-                        fontWeight: 600,
-                      }}
+                    </Button>
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      icon={<ArrowRight size={14} />}
+                      iconPosition="right"
+                      style={{ marginLeft: "auto" }}
                       onClick={(e) => { e.stopPropagation(); setSelectedJob(job); }}
                     >
-                      Apply Now <ArrowRight size={14} />
-                    </button>
+                      Apply Now
+                    </Button>
                   </div>
                 </div>
               </div>
-            </article>
+            </Card>
           );
         })}
-      </div>
+      </Stagger>
 
       {filteredJobs.length === 0 && (
-        <div
-          style={{
-            background: "#132420",
-            border: "1px solid rgba(255,255,255,0.06)",
-            borderRadius: 16,
-            padding: 20,
-            textAlign: "center",
-            marginTop: 10,
-          }}
-        >
-          <strong style={{ fontSize: 15 }}>No matching roles</strong>
-          <p style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", margin: "4px 0 0" }}>
-            Try another search term or filter.
-          </p>
+        <div style={{ marginTop: 10 }}>
+          <EmptyState
+            icon={<Briefcase size={28} />}
+            title="No matching roles"
+            description="Try another search term or filter."
+            variant="compact"
+          />
         </div>
       )}
 
       {/* Floating post button for Pro users */}
       {me.data?.plan === "pro" && (
-        <button
+        <Button
+          icon={<Plus size={24} />}
           onClick={openPostJob}
           style={{
             position: "fixed",
@@ -327,19 +262,14 @@ export function Jobs() {
             width: 56,
             height: 56,
             borderRadius: "50%",
-            border: 0,
-            background: "#1A6B5C",
-            color: "#fff",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "pointer",
+            padding: 0,
+            minHeight: 56,
             boxShadow: "0 4px 16px rgba(26,107,92,0.4)",
             zIndex: 30,
           }}
         >
-          <Plus size={24} />
-        </button>
+          <></>
+        </Button>
       )}
 
       {/* Post Job Modal */}
@@ -349,10 +279,10 @@ export function Jobs() {
             onSubmit={submit}
             style={{ display: "grid", gap: 16 }}
           >
-            <input className="input" name="title" placeholder="Job title" required />
-            <input className="input" name="company" placeholder="Company" required />
-            <input className="input" name="location" placeholder="Location" />
-            <input className="input" name="industry" placeholder="Industry" />
+            <Input name="title" placeholder="Job title" required />
+            <Input name="company" placeholder="Company" required />
+            <Input name="location" placeholder="Location" />
+            <Input name="industry" placeholder="Industry" />
             <select className="input" name="job_type" defaultValue="Remote">
               <option>Remote</option>
               <option>Hybrid</option>
@@ -362,13 +292,14 @@ export function Jobs() {
             <label style={{ fontSize: 13, display: "flex", alignItems: "center", gap: 8 }}>
               <input type="checkbox" defaultChecked /> I confirm this role meets halal compliance expectations.
             </label>
-            <button
-              className="btn btn-primary"
-              disabled={postJob.isPending}
-              style={{ borderRadius: 100, minHeight: 44 }}
+            <Button
+              type="submit"
+              fullWidth
+              loading={postJob.isPending}
+              style={{ minHeight: 44 }}
             >
               Submit job
-            </button>
+            </Button>
           </form>
         </Modal>
       ) : null}

@@ -1,10 +1,13 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Camera, Edit3, MapPin, MessageCircle, Mail, Users, FileText, Globe, Briefcase } from "lucide-react";
+import { Camera, Edit3, MapPin, MessageCircle, Mail, Users, FileText, Globe, Briefcase, CheckCircle2 } from "lucide-react";
 import { FormEvent, useRef, useState } from "react";
 import { Avatar } from "@/components/Avatar";
-import { Modal } from "@/components/Modal";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
+import { Modal } from "@/components/ui/Modal";
 import { apiGet, apiSend } from "@/lib/api/client";
 import { formatPostTime } from "@/lib/utils/time";
 import { ErrorState, InfoCard, ProgressBar, Tag } from "@/components/ui/Common";
@@ -16,16 +19,24 @@ export function Profile() {
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [bioExpanded, setBioExpanded] = useState(false);
   const [uploadingBanner, setUploadingBanner] = useState(false);
+  const [savedSuccess, setSavedSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
   const me = useQuery({ queryKey: ["me"], queryFn: () => apiGet<User>("/api/users/me") });
   const posts = useQuery({ queryKey: ["posts"], queryFn: () => apiGet<Post[]>("/api/posts") });
   const weekly = useQuery({ queryKey: ["weekly-count"], queryFn: () => apiGet<{ count: number; remaining: number }>("/api/messages/weekly-count") });
+  const connections = useQuery({
+    queryKey: ["connections-count"],
+    queryFn: () => apiGet<{ id: string }[]>(`/api/users/${me.data?.id}/connections`),
+    enabled: Boolean(me.data?.id),
+  });
   const update = useMutation({
     mutationFn: (body: Partial<User>) => apiSend<User>(`/api/users/${me.data?.id}`, "PATCH", body),
     onSuccess: () => {
       setEditing(false);
+      setSavedSuccess(true);
+      setTimeout(() => setSavedSuccess(false), 2500);
       void queryClient.invalidateQueries({ queryKey: ["me"] });
     },
   });
@@ -85,13 +96,34 @@ export function Profile() {
   const displayAvatar = avatarPreview || currentUser.avatar_url;
   const displayBanner = bannerPreview || currentUser.banner_url;
   const userPosts = posts.data?.filter((post) => post.user_id === currentUser.id) ?? [];
-  const bioTruncated = currentUser.bio && currentUser.bio.length > 150 && !bioExpanded;
 
   return (
-    <div>
+    <div className="animate-fade-in">
+      {/* Success toast */}
+      {savedSuccess ? (
+        <div
+          className="animate-fade-in-down"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            padding: "10px 16px",
+            background: "rgba(94,205,181,0.15)",
+            border: "1px solid rgba(94,205,181,0.3)",
+            borderRadius: 12,
+            marginBottom: 12,
+            fontSize: 14,
+            fontWeight: 600,
+            color: "#5ECDB5",
+          }}
+        >
+          <CheckCircle2 size={18} /> Profile updated successfully
+        </div>
+      ) : null}
+
       {/* 1. Cover banner */}
       <div
-        className="profile-banner"
+        className="profile-banner transition-normal"
         style={{
           height: 140,
           borderRadius: "16px 16px 0 0",
@@ -103,11 +135,11 @@ export function Profile() {
         }}
       >
         <button
-          className="banner-upload-btn"
+          className="banner-upload-btn transition-fast"
           onClick={() => bannerInputRef.current?.click()}
           aria-label="Upload banner image"
         >
-          {uploadingBanner ? <span style={{ fontSize: 10 }}>...</span> : <Camera size={16} />}
+          {uploadingBanner ? <span className="spin" style={{ fontSize: 10 }}>⟳</span> : <Camera size={16} />}
         </button>
         <input
           ref={bannerInputRef}
@@ -120,6 +152,7 @@ export function Profile() {
 
       {/* 2. Avatar + Edit button */}
       <div
+        className="animate-fade-in"
         style={{
           padding: "0 20px",
           marginTop: -40,
@@ -132,6 +165,7 @@ export function Profile() {
       >
         <div style={{ position: "relative", display: "inline-flex" }}>
           <div
+            className="transition-normal"
             style={{
               borderRadius: "999px",
               display: "inline-flex",
@@ -142,7 +176,7 @@ export function Profile() {
             <Avatar name={currentUser.full_name} size={80} src={displayAvatar} />
           </div>
           <button
-            className="avatar-upload-btn"
+            className="avatar-upload-btn transition-fast hover-lift"
             onClick={() => fileInputRef.current?.click()}
             aria-label="Upload profile picture"
           >
@@ -156,34 +190,24 @@ export function Profile() {
             onChange={handleAvatarChange}
           />
         </div>
-        <button
-          className="btn-ghost"
-          style={{
-            minHeight: 36,
-            padding: "0 14px",
-            fontSize: 13,
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            border: "1px solid rgba(255,255,255,0.08)",
-            borderRadius: 100,
-            background: "transparent",
-            color: "rgba(255,255,255,0.55)",
-          }}
+        <Button
+          variant="ghost"
+          size="sm"
+          icon={<Edit3 size={14} />}
           onClick={() => setEditing(true)}
         >
-          <Edit3 size={14} /> Edit Profile
-        </button>
+          Edit Profile
+        </Button>
       </div>
 
       {/* 3. Name + Industry + Location + Bio + Skills */}
-      <div style={{ padding: "12px 20px 0" }}>
+      <div style={{ padding: "12px 20px 0" }} className="animate-fade-in">
         <h1
+          className="font-display"
           style={{
             margin: 0,
             fontSize: 22,
             fontWeight: 700,
-            fontFamily: "'DM Sans', sans-serif",
             lineHeight: 1.2,
             whiteSpace: "nowrap",
             overflow: "hidden",
@@ -204,11 +228,13 @@ export function Profile() {
         </p>
 
         {currentUser.bio ? (
-          <div style={{ marginTop: 10, fontSize: 14, lineHeight: 1.6, color: "rgba(255,255,255,0.8)" }}>
-            {bioTruncated ? currentUser.bio.slice(0, 150) + "..." : currentUser.bio}
+          <div className="animate-fade-in" style={{ marginTop: 10, fontSize: 14, lineHeight: 1.6, color: "rgba(255,255,255,0.8)" }}>
+            {currentUser.bio.length > 150 && !bioExpanded
+              ? currentUser.bio.slice(0, 150) + "..."
+              : currentUser.bio}
             {currentUser.bio.length > 150 && (
               <button
-                className="btn-link"
+                className="btn-link transition-fast"
                 style={{ marginLeft: 4, fontSize: 13, color: "rgba(255,255,255,0.55)" }}
                 onClick={() => setBioExpanded(!bioExpanded)}
               >
@@ -220,17 +246,11 @@ export function Profile() {
 
         {currentUser.skills.length > 0 && (
           <div
-            className="skill-scroll"
-            style={{
-              marginTop: 10,
-              display: "flex",
-              gap: 6,
-              overflowX: "auto",
-              paddingBottom: 4,
-            }}
+            className="skill-scroll animate-fade-in"
+            style={{ marginTop: 10, display: "flex", gap: 6, overflowX: "auto", paddingBottom: 4 }}
           >
             {currentUser.skills.map((skill) => (
-              <Tag key={skill}>{skill}</Tag>
+              <Tag key={skill} className="transition-fast">{skill}</Tag>
             ))}
           </div>
         )}
@@ -238,6 +258,7 @@ export function Profile() {
 
       {/* 4. Stats row */}
       <div
+        className="stagger-children"
         style={{
           padding: "16px 20px",
           display: "flex",
@@ -248,9 +269,9 @@ export function Profile() {
         }}
       >
         {[
-          { label: "Connections", value: "0", icon: Users },
+          { label: "Connections", value: String(connections.data?.length ?? 0), icon: Users },
           { label: "Posts", value: String(userPosts.length), icon: FileText },
-          { label: "Communities", value: "5", icon: Globe },
+          { label: "Communities", value: "—", icon: Globe },
         ].map(({ label, value, icon: Icon }) => (
           <div key={label} style={{ flex: 1, textAlign: "center", padding: "8px 0" }}>
             <div style={{ fontSize: 18, fontWeight: 700 }}>{value}</div>
@@ -274,6 +295,7 @@ export function Profile() {
       {/* 5. Open to Opportunities */}
       {currentUser.open_to_opportunities && (
         <div
+          className="animate-fade-in"
           style={{
             margin: "14px 20px",
             padding: "10px 14px",
@@ -293,25 +315,21 @@ export function Profile() {
       )}
 
       {/* 6. Connections & Posts */}
-      <div style={{ padding: "0 20px 20px" }}>
+      <div style={{ padding: "0 20px 20px" }} className="stagger-children">
         {/* Connections Section */}
-        <div
-          style={{
-            background: "#132420",
-            border: "1px solid rgba(255,255,255,0.06)",
-            borderRadius: 16,
-            padding: 16,
-            marginTop: 14,
-          }}
+        <Card
+          variant="interactive"
+          padding="md"
+          style={{ marginTop: 14 }}
         >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-            <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700, fontFamily: "'DM Sans', sans-serif" }}>Connections</h3>
-            <button className="btn-link" style={{ fontSize: 13, color: "#1A6B5C" }}>See all</button>
+            <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Connections</h3>
+            <Button variant="ghost" size="sm" style={{ fontSize: 13, color: "var(--color-primary)", padding: 0, border: 0, background: "none" }}>See all</Button>
           </div>
-          <p style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", margin: 0 }}>
+          <p style={{ fontSize: 13, color: "var(--color-text-muted)", margin: 0 }}>
             Connect with professionals to grow your network
           </p>
-        </div>
+        </Card>
 
         {/* Posts Section */}
         <div style={{ marginTop: 14 }}>
@@ -320,15 +338,11 @@ export function Profile() {
           </h3>
           {userPosts.length > 0 ? (
             userPosts.map((post) => (
-              <div
+              <Card
                 key={post.id}
-                style={{
-                  background: "#132420",
-                  border: "1px solid rgba(255,255,255,0.06)",
-                  borderRadius: 16,
-                  padding: 16,
-                  marginBottom: 8,
-                }}
+                variant="interactive"
+                padding="md"
+                style={{ marginBottom: 8 }}
               >
                 <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
                   <Avatar name={currentUser.full_name} size={36} src={displayAvatar} />
@@ -356,20 +370,12 @@ export function Profile() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </Card>
             ))
           ) : (
-            <div
-              style={{
-                background: "#132420",
-                border: "1px solid rgba(255,255,255,0.06)",
-                borderRadius: 16,
-                padding: 16,
-                textAlign: "center",
-              }}
-            >
-              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", margin: 0 }}>No posts yet</p>
-            </div>
+            <Card padding="md" style={{ textAlign: "center" }}>
+              <p style={{ fontSize: 13, color: "var(--color-text-muted)", margin: 0 }}>No posts yet</p>
+            </Card>
           )}
         </div>
 
@@ -409,14 +415,18 @@ export function Profile() {
             onSubmit={submit}
             style={{ display: "grid", gap: 16 }}
           >
-            <input className="input" name="full_name" defaultValue={currentUser.full_name} placeholder="Full name" />
-            <input className="input" name="industry" defaultValue={currentUser.industry} placeholder="Industry" />
-            <input className="input" name="career_stage" defaultValue={currentUser.career_stage} placeholder="Career stage" />
-            <input className="input" name="city" defaultValue={currentUser.city} placeholder="City" />
+            <Input name="full_name" defaultValue={currentUser.full_name} placeholder="Full name" />
+            <Input name="industry" defaultValue={currentUser.industry} placeholder="Industry" />
+            <Input name="career_stage" defaultValue={currentUser.career_stage} placeholder="Career stage" />
+            <Input name="city" defaultValue={currentUser.city} placeholder="City" />
             <textarea className="textarea" name="bio" defaultValue={currentUser.bio} placeholder="Bio" rows={4} />
-            <button className="btn btn-primary" disabled={update.isPending} style={{ borderRadius: 100 }}>
-              Save changes
-            </button>
+            <Button
+              fullWidth
+              loading={update.isPending}
+              style={{ borderRadius: 100, minHeight: 44 }}
+            >
+              {update.isPending ? "Saving..." : "Save changes"}
+            </Button>
           </form>
         </Modal>
       ) : null}
