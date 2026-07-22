@@ -74,7 +74,7 @@ export function Messages() {
 
   return (
     <PageTransition>
-      <div className="screen-title" style={{ marginBottom: 16 }}>
+      <div className="screen-title mb-lg">
         <div>
           <h1>Messages</h1>
           <p className="muted">Private conversations</p>
@@ -82,14 +82,14 @@ export function Messages() {
         <span className="pill">{weekly.data?.count ?? 0} of 10 used</span>
       </div>
       {send.error ? (
-        <Card padding="sm" style={{ marginBottom: 12 }}>
-          <strong style={{ fontSize: 14 }}>Message not sent.</strong>
-          <p className="muted" style={{ fontSize: 13, margin: "4px 0 0" }}>Weekly limits or network issues may be blocking this send.</p>
+        <Card padding="sm" className="mb-md">
+          <strong className="text-14">Message not sent.</strong>
+          <p className="muted text-13" style={{ margin: "4px 0 0" }}>Weekly limits or network issues may be blocking this send.</p>
         </Card>
       ) : null}
       <div className="grid two-col" style={{ gap: 14 }}>
         {/* Conversation list */}
-        <Card padding="none" style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}>
+        <Card padding="none" className="flex-col" style={{ overflow: "hidden" }}>
           {(users.data ?? []).length === 0 ? (
             <EmptyState
               icon={<MessageCircle size={24} />}
@@ -105,27 +105,9 @@ export function Messages() {
               <button
                 key={user.id}
                 onClick={() => setActiveUserId(user.id)}
-                style={{
-                  width: "100%",
-                  border: 0,
-                  borderRadius: 0,
-                  background: isActive ? "rgba(26,107,92,0.12)" : "transparent",
-                  padding: "12px 14px",
-                  color: "#fff",
-                  textAlign: "left",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  borderBottom: "1px solid var(--color-line)",
-                  position: "relative",
-                  minHeight: 44,
-                  transition: "background var(--duration-fast) ease",
-                }}
-                onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = "rgba(255,255,255,0.03)"; }}
-                onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
+                className={`conversation-btn ${isActive ? "conversation-btn--active" : ""}`}
               >
-                <div style={{ position: "relative" }}>
+                <div className="avatar-wrap">
                   <Avatar name={user.full_name} size={40} />
                   {hasUnread && (
                     <span style={{
@@ -140,9 +122,9 @@ export function Messages() {
                     }} />
                   )}
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <strong style={{ fontSize: 15, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                <div className="flex-1">
+                  <div className="flex-between">
+                    <strong className="truncate text-15">
                       {user.full_name}
                       {hasUnread && (
                         <span style={{
@@ -179,19 +161,9 @@ export function Messages() {
         </Card>
 
         {/* Active conversation thread */}
-        <Card padding="md" style={{
-          minHeight: 560,
-          display: "flex",
-          flexDirection: "column",
-        }}>
+        <Card padding="md" className="flex-col" style={{ minHeight: 560 }}>
           {/* Header */}
-          <div style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            borderBottom: "1px solid var(--color-line)",
-            paddingBottom: 12,
-          }}>
+          <div className="thread-header">
             <Avatar name={active?.full_name ?? "User"} size={36} />
             <div>
               <strong style={{ fontSize: 15 }}>{active?.full_name ?? "Select a conversation"}</strong>
@@ -204,15 +176,7 @@ export function Messages() {
           {/* Messages */}
           <div
             ref={scrollRef}
-            style={{
-              flex: 1,
-              overflowY: "auto",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "flex-end",
-              padding: "16px 0",
-              gap: 8,
-            }}
+            className="thread-messages"
           >
             {(thread.data ?? []).length === 0 ? (
               <EmptyState
@@ -245,13 +209,7 @@ export function Messages() {
           {/* Input */}
           <form
             onSubmit={submit}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              borderTop: "1px solid var(--color-line)",
-              paddingTop: 12,
-            }}
+            className="thread-input"
           >
             <Input
               name="content"

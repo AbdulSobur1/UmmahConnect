@@ -90,23 +90,14 @@ export function HomeFeed() {
   return (
     <div className="animate-fade-in">
       {/* Feed header */}
-      <div style={{ marginBottom: 16 }}>
-        <div style={{ fontSize: 16, color: "var(--color-text-muted)", marginBottom: 8 }} className="animate-fade-in">
+      <div className="mb-lg">
+        <div className="animate-fade-in text-16 text-muted-color mb-sm">
           {greeting}
         </div>
         {/* Prayer time strip */}
-        <div className="card hover-lift" style={{
-          padding: "8px 14px",
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          minHeight: 36,
-          background: "rgba(94,205,181,0.06)",
-          border: "1px solid rgba(94,205,181,0.12)",
-          marginBottom: 12,
-        }}>
+        <div className="card hover-lift prayer-strip mb-md">
           <Sunrise size={16} color="var(--color-success)" />
-          <span style={{ fontSize: 13, color: "rgba(255,255,255,0.8)" }}>
+          <span className="text-13" style={{ color: "rgba(255,255,255,0.8)" }}>
             {prayer.data
               ? `Next prayer: ${prayer.data.name} · ${prayer.data.time} · in ${prayer.data.minutes_until} min`
               : "🌙 Maghrib · 7:42 PM · in 34 min"}
@@ -114,10 +105,7 @@ export function HomeFeed() {
         </div>
 
         {/* Compose box */}
-        <form className="card transition-normal" onSubmit={submitPost} style={{
-          padding: 14,
-          transition: "border-color 0.2s ease, box-shadow 0.2s ease",
-        }}
+        <form className="card transition-normal compose-card" onSubmit={submitPost}
           onFocusCapture={(e) => {
             const card = e.currentTarget;
             card.style.borderColor = "rgba(26,107,92,0.4)";
@@ -129,7 +117,7 @@ export function HomeFeed() {
             card.style.boxShadow = "none";
           }}
         >
-          <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+          <div className="row" style={{ alignItems: "flex-start" }}>
             <Avatar name={currentUser?.full_name ?? "User"} size={36} />
             <textarea
               className="textarea transition-normal"
@@ -147,8 +135,8 @@ export function HomeFeed() {
               onBlur={(e) => { if (!e.currentTarget.value) e.currentTarget.style.minHeight = "44px"; }}
             />
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 10 }}>
-            <div style={{ display: "flex", gap: 6 }}>
+          <div className="flex-between mt-md">
+            <div className="row" style={{ gap: 6 }}>
               {[
                 { icon: Image, label: "Photo" },
                 { icon: Globe, label: "Community" },
@@ -170,7 +158,7 @@ export function HomeFeed() {
               disabled={createPost.isPending}
               loading={createPost.isPending}
               icon={<Send size={14} />}
-              style={{ minHeight: 36, fontSize: 13, padding: "0 16px" }}
+              className="post-submit-btn"
             >
               {createPost.isPending ? "Posting..." : "Post"}
             </Button>
@@ -180,13 +168,13 @@ export function HomeFeed() {
 
       {/* Feed grid */}
       <div className="grid two-col" style={{ gap: 16 }}>
-        <section className="grid stagger-children" style={{ gap: 12 }}>
+        <section className="grid stagger-children">
           {/* Error state */}
           {posts.error ? (
             <Card padding="xl" style={{ textAlign: "center" }}>
-              <div style={{ fontSize: 40, marginBottom: 10 }}>⚠️</div>
+              <div className="text-14" style={{ fontSize: 40, marginBottom: 10 }}>⚠️</div>
               <strong style={{ fontSize: 18 }}>Couldn&apos;t load your feed</strong>
-              <p className="muted" style={{ fontSize: 14, margin: "6px 0 16px" }}>Check your connection and try again.</p>
+              <p className="muted" style={{ margin: "6px 0 16px" }}>Check your connection and try again.</p>
               <Button variant="accent" size="sm" onClick={() => void posts.refetch()}>Retry</Button>
             </Card>
           ) : posts.isLoading ? (
@@ -223,29 +211,20 @@ export function HomeFeed() {
         <aside className="grid stagger-children" style={{ gap: 12, alignContent: "start" }}>
           {/* Sponsored event */}
           {event ? (
-            <article className="sponsored-card hover-lift transition-normal" style={{ padding: 14 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                <span style={{
-                  fontSize: 10,
-                  fontWeight: 700,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.8px",
-                  color: "var(--color-accent)",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 4,
-                }}>
+            <article className="sponsored-card hover-lift transition-normal p-sm">
+              <div className="flex-between">
+                <span className="sponsored-label-small">
                   <Star size={12} /> Sponsored
                 </span>
                 <CalendarDays size={14} color="var(--color-accent)" />
               </div>
-              <h3 style={{ margin: "8px 0 4px", fontSize: 15, fontWeight: 700 }}>{event.title}</h3>
-              <p className="muted" style={{ fontSize: 13, margin: 0 }}>
+              <h3 className="text-15 text-bold" style={{ margin: "8px 0 4px" }}>{event.title}</h3>
+              <p className="muted text-13" style={{ margin: 0 }}>
                 {event.event_date} · {event.location_detail}
               </p>
               <button
-                className="btn btn-accent transition-fast hover-lift"
-                style={{ marginTop: 10, fontSize: 13, minHeight: 36, padding: "0 14px" }}
+                className="btn btn-accent transition-fast hover-lift mt-sm"
+                style={{ fontSize: 13, minHeight: 36, padding: "0 14px" }}
                 onClick={() => void apiSend(`/api/events/${event.id}/click`, "POST")}
               >
                 Register interest
@@ -255,25 +234,25 @@ export function HomeFeed() {
 
           {/* Community quick-links */}
           {(communities.data ?? []).length > 0 ? (
-            <article className="card transition-normal" style={{ padding: 14 }}>
-              <strong style={{ fontSize: 14, marginBottom: 10, display: "block" }}>Community quick-links</strong>
+            <article className="card transition-normal p-sm">
+              <strong className="text-14" style={{ marginBottom: 10, display: "block" }}>Community quick-links</strong>
               <div className="community-scroll" style={{ display: "flex", gap: 6, overflowX: "auto", marginTop: 6, paddingBottom: 4 }}>
                 {(communities.data ?? []).slice(0, 6).map((community) => (
-                  <Tag key={community.id} className="transition-fast hover-lift" style={{ cursor: "pointer" }}>{community.name}</Tag>
+                  <Tag key={community.id} className="transition-fast hover-lift cursor-pointer">{community.name}</Tag>
                 ))}
               </div>
             </article>
           ) : null}
 
-          <article className="card transition-normal" style={{ padding: 14 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <article className="card transition-normal p-sm">
+            <div className="row">
               <MessageSquare size={15} color="var(--color-text-muted)" />
-              <strong style={{ fontSize: 13 }}>Weekly messaging</strong>
+              <strong className="text-13">Weekly messaging</strong>
             </div>
-            <div style={{ marginTop: 8 }}>
+            <div className="mt-sm">
               <ProgressBar value={weeklyCount} height={6} />
             </div>
-            <p style={{ margin: "4px 0 0", fontSize: 12, color: "var(--color-text-muted)" }}>
+            <p className="muted text-12" style={{ margin: "4px 0 0" }}>
               {weeklyCount} of 10 messages used this week
             </p>
           </article>

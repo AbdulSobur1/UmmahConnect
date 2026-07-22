@@ -86,9 +86,9 @@ export function Notifications() {
         <Button variant="primary" icon={<CheckCheck size={17} />} onClick={() => markAll.mutate()}>Mark all as read</Button>
       </div>
       {acceptConnection.error ? (
-        <Card padding="sm" style={{ marginBottom: 14 }}>
+        <Card padding="sm" className="mb-md">
           <strong>Connection was not accepted.</strong>
-          <p className="muted" style={{ margin: "4px 0 0", fontSize: 13 }}>This notification may point to an older request.</p>
+          <p className="muted text-13" style={{ margin: "4px 0 0" }}>This notification may point to an older request.</p>
         </Card>
       ) : null}
       
@@ -100,44 +100,35 @@ export function Notifications() {
         />
       ) : (
         grouped.map((group) => (
-          <div key={group.label} style={{ marginBottom: 18 }}>
-            <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--color-text-muted)", margin: "0 0 8px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+          <div key={group.label} className="mb-lg">
+            <h3 className="notif-group-label">
               {group.label}
             </h3>
             <Stagger as="div" className="grid" style={{ gap: 8 }}>
               {group.items.map((notification) => {
                 const IconComponent = iconByType[notification.type] || Bell;
-                return (
-                  <Card
+                return (                    <Card
                     key={notification.id}
                     padding="md"
+                    className="row"
                     style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 12,
                       borderColor: notification.is_read ? "var(--color-line)" : "var(--color-accent)",
                     }}
                   >
                     <div
+                      className="notif-icon"
                       style={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: "var(--radius-full)",
                         background: notification.is_read ? "var(--color-bg-hover)" : "var(--color-primary-light)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flexShrink: 0,
                         color: notification.is_read ? "var(--color-text-muted)" : "var(--color-primary)",
                       }}
                     >
                       <IconComponent size={16} />
                     </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <strong style={{ fontSize: 14, display: "block", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    <div className="flex-1">
+                      <strong className="notif-item-title">
                         {notification.content}
                       </strong>
-                      <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--color-text-muted)" }}>
+                      <p className="notif-item-meta">
                         {notification.type} · {formatPostTime(notification.created_at)}
                       </p>
                     </div>
