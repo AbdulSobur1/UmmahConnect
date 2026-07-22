@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Camera, Edit3, MapPin, MessageCircle, Mail, Users, FileText, Globe, Briefcase, CheckCircle2 } from "lucide-react";
+import { PostCard } from "@/components/ui/PostCard";
 import { FormEvent, useRef, useState } from "react";
 import { Avatar } from "@/components/Avatar";
 import { Button } from "@/components/ui/Button";
@@ -344,40 +345,18 @@ export function Profile() {
             Posts
           </h3>
           {userPosts.length > 0 ? (
-            userPosts.map((post) => (
-              <Card
-                key={post.id}
-                variant="interactive"
-                padding="md"
-                style={{ marginBottom: 8 }}
-              >
-                <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-                  <Avatar name={currentUser.full_name} size={36} src={displayAvatar} />
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <strong style={{ fontSize: 15 }}>{currentUser.full_name}</strong>
-                      <span style={{ fontSize: 11, color: "rgba(255,255,255,0.55)" }}>
-                        {formatPostTime(post.created_at)}
-                      </span>
-                    </div>
-                    <p style={{ margin: "6px 0 0", fontSize: 14, lineHeight: 1.6, color: "rgba(255,255,255,0.85)" }}>
-                      {post.content}
-                    </p>
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: 16,
-                        marginTop: 8,
-                        fontSize: 13,
-                        color: "rgba(255,255,255,0.55)",
-                      }}
-                    >
-                      <span>❤️ {post.likes_count}</span>
-                      <span>💬 {post.comments_count}</span>
-                    </div>
-                  </div>
-                </div>
-              </Card>
+            userPosts.map((post, index) => (
+              <div key={post.id} style={{ marginBottom: 8 }}>
+                <PostCard
+                  post={post}
+                  isExpanded={false}
+                  isLiked={false}
+                  isAnimatingLike={false}
+                  onToggleExpand={() => {}}
+                  onLike={() => {}}
+                  index={index}
+                />
+              </div>
             ))
           ) : (
             <EmptyState

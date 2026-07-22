@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { MessageCircle, Send } from "lucide-react";
+import { MessageBubble } from "@/components/ui/MessageBubble";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Avatar } from "@/components/Avatar";
 import { Button } from "@/components/ui/Button";
@@ -228,53 +229,13 @@ export function Messages() {
                   ? new Date(message.created_at).toDateString() !== new Date(prevMessage.created_at).toDateString()
                   : false;
                 return (
-                  <div key={message.id}>
-                    {showDateHeader && (
-                      <div style={{
-                        textAlign: "center",
-                        padding: "12px 0 4px",
-                        fontSize: 11,
-                        color: "var(--color-text-muted)",
-                        fontWeight: 600,
-                      }}>
-                        {new Date(message.created_at).toLocaleDateString(undefined, {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
-                      </div>
-                    )}
-                    <div
-                      className="animate-fade-in-up"
-                      style={{
-                        display: "flex",
-                        justifyContent: mine ? "flex-end" : "flex-start",
-                        flexDirection: "column",
-                        alignItems: mine ? "flex-end" : "flex-start",
-                        maxWidth: "75%",
-                        alignSelf: mine ? "flex-end" : "flex-start",
-                      }}
-                    >
-                      <div style={{
-                        borderRadius: 12,
-                        padding: "8px 14px",
-                        background: mine ? "var(--color-primary)" : "rgba(255,255,255,0.06)",
-                        color: mine ? "var(--color-text-primary)" : "#fff",
-                        fontSize: 14,
-                        lineHeight: 1.5,
-                        wordBreak: "break-word",
-                      }}>
-                        {message.content}
-                      </div>
-                      <span style={{
-                        fontSize: 11,
-                        color: "var(--color-text-muted)",
-                        marginTop: 3,
-                        padding: "0 4px",
-                      }}>
-                        {formatMessageTime(message.created_at)}
-                      </span>
-                    </div>
+                  <div key={message.id} className="animate-fade-in-up">
+                    <MessageBubble
+                      content={message.content}
+                      created_at={message.created_at}
+                      isMine={mine}
+                      showDateHeader={showDateHeader}
+                    />
                   </div>
                 );
               })

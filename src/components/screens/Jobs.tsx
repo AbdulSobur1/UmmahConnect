@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Briefcase, Plus, Search, Bookmark, ShieldCheck, ArrowRight, Home } from "lucide-react";
+import { Briefcase, Plus, Search, Bookmark, ArrowRight, Home } from "lucide-react";
 import { FormEvent, useMemo, useState } from "react";
 import { HalalBadge } from "@/components/HalalBadge";
 import { Button } from "@/components/ui/Button";

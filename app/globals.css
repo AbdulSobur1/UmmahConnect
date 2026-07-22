@@ -354,10 +354,20 @@ button { cursor: pointer; }
 .screen-title { display:flex; align-items:flex-end; justify-content:space-between; gap:var(--space-lg); margin-bottom:var(--space-xl) }
 .screen-title h1 { margin:0; font-family:var(--font-display); font-size:var(--text-h1); line-height:1 }
 
+/* Utility flex classes */
+.flex-between { display:flex; align-items:center; justify-content:space-between; gap:var(--space-md); }
+.truncate { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+
 .row { display:flex; align-items:center; gap:var(--space-md) }
 .space-between { justify-content:space-between }
 .row--wrap { flex-wrap: wrap; }
 .row--stack { flex-direction: column; align-items: flex-start; }
+
+.post-actions { display:flex; align-items:center; gap:16px; margin-top:12px; padding-top:10px; border-top:1px solid var(--color-line-light); font-size:14px; color:var(--color-text-muted); }
+.post-action-btn { padding:4px 6px; min-height:auto; border:0; background:transparent; }
+.post-content { font-size:15px; line-height:1.6; margin:0; color:rgba(255,255,255,0.9); }
+
 
 .modal-backdrop { position:fixed; inset:0; z-index:var(--z-modal); display:grid; place-items:center; padding:var(--space-xl); background:rgba(13,27,30,0.62); }
 .modal { width:min(640px,100%); max-height:calc(100vh - 40px); overflow:auto; background:var(--color-bg-secondary); border-radius:18px; padding:26px; box-shadow: var(--shadow-xl); }
@@ -409,6 +419,16 @@ button { cursor: pointer; }
 .hover-lift { transition: transform var(--duration-normal) ease, box-shadow var(--duration-normal) ease; }
 .hover-lift:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
 .hover-lift:active { transform: translateY(0); }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
 
 /* Shimmer skeleton */
 .skeleton {
@@ -467,6 +487,25 @@ button { cursor: pointer; }
 /* Profile banner */
 .profile-banner { position:relative; }
 
+/* Message bubble classes */
+.message-date-header { text-align:center; padding:12px 0 4px; font-size:11px; color:var(--color-text-muted); font-weight:600; }
+.message-bubble-wrapper { display:flex; flex-direction:column; max-width:75%; align-self:flex-start; }
+.message-bubble-wrapper.message-bubble--sent { align-items:flex-end; align-self:flex-end; }
+.message-bubble-wrapper.message-bubble--received { align-items:flex-start; align-self:flex-start; }
+.message-bubble { border-radius:12px; padding:8px 14px; font-size:14px; line-height:1.5; word-break:break-word; }
+.message-bubble-sent { background:var(--color-primary); color:var(--color-text-primary); }
+.message-bubble-received { background:rgba(255,255,255,0.06); color:#fff; }
+.message-timestamp { font-size:11px; color:var(--color-text-muted); margin-top:3px; padding:0 4px; }
+
+/* Page shell, header, section */
+.page-shell { width:min(100% - 32px, 1120px); margin:0 auto; padding:28px 0 64px; }
+.page-section { margin-bottom:var(--space-2xl); }
+.page-section-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:var(--space-lg); }
+.page-section-title { font-size:var(--text-h3); font-weight:700; margin:0; }
+.page-section-action { flex-shrink:0; }
+.page-header-action { flex-shrink:0; }
+
+
 /* Skill scroll */
 .skill-scroll::-webkit-scrollbar { height:4px; }
 .skill-scroll::-webkit-scrollbar-track { background:transparent; }
@@ -492,6 +531,19 @@ button:active:not(.btn-link):not(.avatar-dropdown-item):not(.bottom-nav-item):no
 *:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
+}
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
 }
 
 /* Interactive card cursor */

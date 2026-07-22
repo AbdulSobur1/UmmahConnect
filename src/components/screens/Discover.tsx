@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { UserPlus, Globe, Users, Briefcase, CalendarDays, Search } from "lucide-react";
+import { UserPlus, Globe, Users, CalendarDays, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Avatar } from "@/components/Avatar";
 import { Button } from "@/components/ui/Button";

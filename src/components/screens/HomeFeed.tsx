@@ -2,18 +2,18 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  CalendarDays, Heart, MessageCircle, Send, Share2, Star, Sunrise,
+  CalendarDays, Send, Star, Sunrise,
   MessageSquare, Image, Globe, FileText, Sparkles,
 } from "lucide-react";
 import { FormEvent, useState } from "react";
 import { Avatar } from "@/components/Avatar";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { PostCard } from "@/components/ui/PostCard";
 import { ProgressBar, Tag } from "@/components/ui/Common";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useToast } from "@/components/ui/Toast";
 import { apiGet, apiSend } from "@/lib/api/client";
-import { formatPostTime } from "@/lib/utils/time";
 import type { Community, EventListing, Post, User } from "@/types";
 
 type Prayer = { name: string; time: string; minutes_until: number };
@@ -200,95 +200,20 @@ export function HomeFeed() {
           ) : (
             (posts.data ?? []).map((post, index) => {
               const isExpanded = expandedPosts.has(post.id);
-              const contentLong = post.content.length > 200;
-              const displayContent = isExpanded || !contentLong ? post.content : post.content.slice(0, 200) + "...";
               const isLiked = likedPosts.has(post.id);
               const isAnimatingLike = animatingLike === post.id;
 
               return (
-                <Card
+                <PostCard
                   key={post.id}
-                  variant="interactive"
-                  padding="md"
-                  style={{
-                    animationDelay: `${index * 0.05}s`,
-                  }}
-                >
-                  {/* Header */}
-                  <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-                    <Avatar name={post.user?.full_name ?? "User"} size={42} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                        <div>
-                          <strong style={{ fontSize: 15 }}>{post.user?.full_name ?? "Unknown"}</strong>
-                          <div style={{ fontSize: 13, color: "var(--color-text-muted)" }}>
-                            {[post.user?.industry, post.user?.city].filter(Boolean).join(" · ") || ""}
-                          </div>
-                        </div>
-                        <span style={{ fontSize: 12, color: "var(--color-text-muted)", whiteSpace: "nowrap", marginLeft: 8 }}>
-                          {formatPostTime(post.created_at)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Content */}
-                  <div style={{ marginTop: 10 }}>
-                    <p style={{ fontSize: 15, lineHeight: 1.6, margin: 0, color: "rgba(255,255,255,0.9)" }}>
-                      {displayContent}
-                    </p>
-                    {contentLong && (
-                      <button
-                        className="btn-link transition-fast"
-                        style={{ fontSize: 13, marginTop: 4, color: "var(--color-text-muted)" }}
-                        onClick={() => toggleExpand(post.id)}
-                      >
-                        {isExpanded ? "See less" : "See more"}
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Actions */}
-                  <div style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 16,
-                    marginTop: 12,
-                    paddingTop: 10,
-                    borderTop: "1px solid var(--color-line-light)",
-                    fontSize: 14,
-                    color: "var(--color-text-muted)",
-                  }}>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      style={{
-                        color: isLiked ? "#f87171" : "inherit",
-                        padding: "4px 6px",
-                        minHeight: "auto",
-                        border: 0,
-                        background: "transparent",
-                      }}
-                      onClick={() => toggleLike.mutate(post.id)}
-                    >
-                      <Heart
-                        size={16}
-                        style={{
-                          transition: "transform 0.15s ease",
-                          transform: isAnimatingLike ? "scale(1.3)" : "scale(1)",
-                        }}
-                        fill={isLiked ? "#f87171" : "none"}
-                      />{" "}
-                      {post.likes_count}
-                    </Button>
-                    <Button variant="ghost" size="sm" style={{ padding: "4px 6px", minHeight: "auto", border: 0, background: "transparent" }}>
-                      <MessageCircle size={16} /> {post.comments_count}
-                    </Button>
-                    <Button variant="ghost" size="sm" style={{ padding: "4px 6px", minHeight: "auto", border: 0, background: "transparent", marginLeft: "auto" }}>
-                      <Share2 size={16} /> Share
-                    </Button>
-                  </div>
-                </Card>
+                  post={post}
+                  isExpanded={isExpanded}
+                  isLiked={isLiked}
+                  isAnimatingLike={isAnimatingLike}
+                  onToggleExpand={toggleExpand}
+                  onLike={(postId) => toggleLike.mutate(postId)}
+                  index={index}
+                />
               );
             })
           )}
