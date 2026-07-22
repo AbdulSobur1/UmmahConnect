@@ -2,13 +2,14 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
-import { Bell, Crown, Eye, KeyRound, Lock, Shield, CheckCircle2 } from "lucide-react";
+import { Bell, Crown, Eye, KeyRound, Lock, Shield } from "lucide-react";
 import { FormEvent, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
 import { PageTransition } from "@/components/ui/PageTransition";
+import { useToast } from "@/components/ui/Toast";
 import { apiGet, apiSend } from "@/lib/api/client";
 import type { User } from "@/types";
 
@@ -17,15 +18,17 @@ const tabs = ["Account", "Privacy", "Plan", "Notifications"];
 export function SettingsPage() {
   const [activeTab, setActiveTab] = useState("Account");
   const [showPlan, setShowPlan] = useState(false);
+  const { toast } = useToast();
   const queryClient = useQueryClient();
   const me = useQuery({ queryKey: ["me"], queryFn: () => apiGet<User>("/api/users/me") });
-  const [saved, setSaved] = useState(false);
   const update = useMutation({
     mutationFn: (body: Partial<User>) => apiSend<User>(`/api/users/${me.data?.id}`, "PATCH", body),
     onSuccess: () => {
+      toast("Settings saved", "success");
       void queryClient.invalidateQueries({ queryKey: ["me"] });
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
+    },
+    onError: () => {
+      toast("Could not save. Try again.", "error");
     },
   });
 
@@ -44,18 +47,6 @@ export function SettingsPage() {
       <div className="screen-title"><div><h1>Settings</h1><p className="muted">Control profile visibility, account details, plan access, and alerts.</p></div></div>
       <div className="row" style={{ flexWrap: "wrap", marginBottom: 18 }}>{tabs.map((tab) => <Button key={tab} variant={activeTab === tab ? "primary" : "ghost"} size="sm" onClick={() => setActiveTab(tab)}>{tab}</Button>)}</div>
       <Card padding="lg">
-        {saved && (
-          <div className="animate-fade-in-down" style={{
-            display: "flex", alignItems: "center", gap: 8,
-            padding: "10px 14px", marginBottom: 14,
-            background: "var(--color-success-light)",
-            border: "1px solid var(--color-success)",
-            borderRadius: "var(--radius-md)",
-            fontSize: 13, fontWeight: 600, color: "var(--color-success)",
-          }}>
-            <CheckCircle2 size={16} /> Settings saved
-          </div>
-        )}
         {activeTab === "Account" ? (
           <form className="grid" onSubmit={saveAccount}>
             <div className="row"><Shield color="var(--color-primary)" /><strong>Account profile</strong></div>

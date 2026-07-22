@@ -7,7 +7,9 @@ import { Avatar } from "@/components/Avatar";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { Modal } from "@/components/ui/Modal";
+import { useToast } from "@/components/ui/Toast";
 import { apiGet, apiSend } from "@/lib/api/client";
 import { formatPostTime } from "@/lib/utils/time";
 import { ErrorState, InfoCard, ProgressBar, Tag } from "@/components/ui/Common";
@@ -22,6 +24,7 @@ export function Profile() {
   const [savedSuccess, setSavedSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
   const queryClient = useQueryClient();
   const me = useQuery({ queryKey: ["me"], queryFn: () => apiGet<User>("/api/users/me") });
   const posts = useQuery({ queryKey: ["posts"], queryFn: () => apiGet<Post[]>("/api/posts") });
@@ -37,7 +40,11 @@ export function Profile() {
       setEditing(false);
       setSavedSuccess(true);
       setTimeout(() => setSavedSuccess(false), 2500);
+      toast("Profile updated", "success");
       void queryClient.invalidateQueries({ queryKey: ["me"] });
+    },
+    onError: () => {
+      toast("Could not save. Please try again.", "error");
     },
   });
 
@@ -373,9 +380,12 @@ export function Profile() {
               </Card>
             ))
           ) : (
-            <Card padding="md" style={{ textAlign: "center" }}>
-              <p style={{ fontSize: 13, color: "var(--color-text-muted)", margin: 0 }}>No posts yet</p>
-            </Card>
+            <EmptyState
+              icon={<FileText size={24} />}
+              title="No posts yet"
+              description="Share your first post with the community."
+              variant="compact"
+            />
           )}
         </div>
 

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageTransition, Stagger } from "@/components/ui/PageTransition";
+import { useToast } from "@/components/ui/Toast";
 import { apiGet, apiSend } from "@/lib/api/client";
 import { formatPostTime } from "@/lib/utils/time";
 import type { Notification, User } from "@/types";
@@ -44,16 +45,27 @@ function groupNotifications(items: Notification[]) {
 }
 
 export function Notifications() {
+  const { toast } = useToast();
   const queryClient = useQueryClient();
   const me = useQuery({ queryKey: ["me"], queryFn: () => apiGet<User>("/api/users/me") });
   const notifications = useQuery({ queryKey: ["notifications"], queryFn: () => apiGet<Notification[]>("/api/notifications") });
-  const markAll = useMutation({ mutationFn: () => apiSend("/api/notifications/read", "PATCH"), onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["notifications"] }) });
+  const markAll = useMutation({
+    mutationFn: () => apiSend("/api/notifications/read", "PATCH"),
+    onSuccess: () => {
+      toast("All marked as read", "success");
+      void queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    },
+  });
   const markOne = useMutation({ mutationFn: (id: string) => apiSend(`/api/notifications/${id}/read`, "PATCH"), onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["notifications"] }) });
   const acceptConnection = useMutation({
     mutationFn: (input: { connectionId: string; notificationId: string }) => apiSend(`/api/connections/${input.connectionId}`, "PATCH", { status: "accepted" }),
     onSuccess: (_, input) => {
+      toast("Connection accepted", "success");
       void markOne.mutate(input.notificationId);
       void queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    },
+    onError: () => {
+      toast("Could not accept connection.", "error");
     },
   });
 

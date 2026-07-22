@@ -9,11 +9,13 @@ import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageTransition } from "@/components/ui/PageTransition";
+import { useToast } from "@/components/ui/Toast";
 import { apiGet, apiSend } from "@/lib/api/client";
 import { formatMessageTime } from "@/lib/utils/time";
 import type { Message, User } from "@/types";
 
 export function Messages() {
+  const { toast } = useToast();
   const queryClient = useQueryClient();
   const me = useQuery({ queryKey: ["me"], queryFn: () => apiGet<User>("/api/users/me") });
   const users = useQuery({ queryKey: ["suggested-users"], queryFn: () => apiGet<User[]>("/api/users/suggestions") });
@@ -28,8 +30,12 @@ export function Messages() {
   const send = useMutation({
     mutationFn: (content: string) => apiSend<{ message: Message; weekly_count: number }>(`/api/messages/${activeUserId}`, "POST", { content }),
     onSuccess: () => {
+      toast("Message sent", "success");
       void queryClient.invalidateQueries({ queryKey: ["messages", activeUserId] });
       void queryClient.invalidateQueries({ queryKey: ["weekly-count"] });
+    },
+    onError: () => {
+      toast("Message could not be sent.", "error");
     },
   });
 

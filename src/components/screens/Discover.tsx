@@ -9,13 +9,14 @@ import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/Common";
-import { PageTransition } from "@/components/ui/PageTransition";
-import { Stagger } from "@/components/ui/PageTransition";
+import { PageTransition, Stagger } from "@/components/ui/PageTransition";
+import { useToast } from "@/components/ui/Toast";
 import { apiGet, apiSend } from "@/lib/api/client";
 import type { Community, EventListing, Job, User } from "@/types";
 
 export function Discover() {
   const [search, setSearch] = useState("");
+  const { toast } = useToast();
   const queryClient = useQueryClient();
   const communities = useQuery({ queryKey: ["communities"], queryFn: () => apiGet<Community[]>("/api/communities") });
   const me = useQuery({ queryKey: ["me"], queryFn: () => apiGet<User>("/api/users/me") });
@@ -25,7 +26,11 @@ export function Discover() {
   const connect = useMutation({
     mutationFn: (receiver_id: string) => apiSend("/api/connections", "POST", { receiver_id }),
     onSuccess: () => {
+      toast("Connection request sent", "success");
       void queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    },
+    onError: () => {
+      toast("Connection request could not be sent.", "error");
     },
   });
   const [joinedCommunities, setJoinedCommunities] = useState<Set<string>>(new Set());

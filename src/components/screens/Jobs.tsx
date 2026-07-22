@@ -11,8 +11,8 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Modal } from "@/components/ui/Modal";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { ErrorState, IconBox, Tag } from "@/components/ui/Common";
-import { PageTransition } from "@/components/ui/PageTransition";
-import { Stagger } from "@/components/ui/PageTransition";
+import { PageTransition, Stagger } from "@/components/ui/PageTransition";
+import { useToast } from "@/components/ui/Toast";
 import { apiGet, apiSend } from "@/lib/api/client";
 import { formatPostTime } from "@/lib/utils/time";
 import type { Job, User } from "@/types";
@@ -26,6 +26,7 @@ export function Jobs() {
   const [activeFilter, setActiveFilter] = useState("All");
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [savedJobs, setSavedJobs] = useState<Set<string>>(new Set());
+  const { toast } = useToast();
   const queryClient = useQueryClient();
   const me = useQuery({ queryKey: ["me"], queryFn: () => apiGet<User>("/api/users/me") });
   const jobs = useQuery({ queryKey: ["jobs"], queryFn: () => apiGet<Job[]>("/api/jobs") });
@@ -33,9 +34,13 @@ export function Jobs() {
     mutationFn: (body: Record<string, FormDataEntryValue | boolean>) => apiSend<Job>("/api/jobs", "POST", body),
     onSuccess: () => {
       setShowPostJob(false);
+      toast("Job posted successfully", "success");
       void queryClient.invalidateQueries({ queryKey: ["jobs"] });
     },
-    onError: () => setShowUpgrade(true),
+    onError: () => {
+      setShowUpgrade(true);
+      toast("Job could not be posted.", "error");
+    },
   });
   const normalizedSearch = search.trim().toLowerCase();
   const filteredJobs = useMemo(() => {
@@ -68,7 +73,10 @@ export function Jobs() {
     setSavedJobs((prev) => {
       const next = new Set(prev);
       if (next.has(jobId)) next.delete(jobId);
-      else next.add(jobId);
+      else {
+        next.add(jobId);
+        toast("Job saved", "success");
+      }
       return next;
     });
   }

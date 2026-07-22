@@ -10,6 +10,8 @@ import { Avatar } from "@/components/Avatar";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ProgressBar, Tag } from "@/components/ui/Common";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { useToast } from "@/components/ui/Toast";
 import { apiGet, apiSend } from "@/lib/api/client";
 import { formatPostTime } from "@/lib/utils/time";
 import type { Community, EventListing, Post, User } from "@/types";
@@ -28,6 +30,7 @@ function LoadingFeed() {
 }
 
 export function HomeFeed() {
+  const { toast } = useToast();
   const queryClient = useQueryClient();
   const me = useQuery({ queryKey: ["me"], queryFn: () => apiGet<User>("/api/users/me") });
   const posts = useQuery({ queryKey: ["posts"], queryFn: () => apiGet<Post[]>("/api/posts") });
@@ -41,7 +44,11 @@ export function HomeFeed() {
   const createPost = useMutation({
     mutationFn: (content: string) => apiSend<Post>("/api/posts", "POST", { content }),
     onSuccess: () => {
+      toast("Post shared with your community", "success");
       void queryClient.invalidateQueries({ queryKey: ["posts"] });
+    },
+    onError: () => {
+      toast("Post could not be shared.", "error");
     },
   });
   const toggleLike = useMutation({
@@ -185,12 +192,11 @@ export function HomeFeed() {
           ) : posts.isLoading ? (
             <LoadingFeed />
           ) : (posts.data ?? []).length === 0 ? (
-            <Card padding="xl" style={{ textAlign: "center" }}>
-              <div style={{ fontSize: 48, marginBottom: 10 }}>🌙</div>
-              <strong style={{ fontSize: 18 }}>No posts yet</strong>
-              <p className="muted" style={{ marginTop: 6, fontSize: 14, maxWidth: 300, margin: "6px auto 0" }}>Be the first to share something meaningful with your community.</p>
-              <Sparkles size={20} style={{ color: "var(--color-accent)", margin: "12px auto 0" }} />
-            </Card>
+            <EmptyState
+              icon={<Sparkles size={28} />}
+              title="No posts yet"
+              description="Be the first to share something meaningful with your community."
+            />
           ) : (
             (posts.data ?? []).map((post, index) => {
               const isExpanded = expandedPosts.has(post.id);

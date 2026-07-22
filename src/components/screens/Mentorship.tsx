@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageTransition, Stagger } from "@/components/ui/PageTransition";
+import { useToast } from "@/components/ui/Toast";
 import { apiGet, apiSend } from "@/lib/api/client";
 import type { MentorProfile, User } from "@/types";
 
@@ -16,9 +17,16 @@ export function Mentorship() {
   const me = useQuery({ queryKey: ["me"], queryFn: () => apiGet<User>("/api/users/me") });
   const mentors = useQuery({ queryKey: ["mentor-matches"], queryFn: () => apiGet<MentorProfile[]>("/api/mentorship/matches"), retry: false });
   const profiles = useQuery({ queryKey: ["mentor-profiles"], queryFn: () => apiGet<MentorProfile[]>("/api/mentorship/profiles"), enabled: Boolean(mentors.error) });
+  const { toast } = useToast();
   const requestMentorship = useMutation({
     mutationFn: (mentor_id: string) => apiSend("/api/mentorship/requests", "POST", { mentor_id }),
-    onSuccess: (_, mentorId) => setRequestedMentorId(mentorId),
+    onSuccess: (_, mentorId) => {
+      setRequestedMentorId(mentorId);
+      toast("Request sent", "success");
+    },
+    onError: () => {
+      toast("Request could not be sent.", "error");
+    },
   });
   const currentUser = me.data;
   const list = mentors.data ?? profiles.data ?? [];
