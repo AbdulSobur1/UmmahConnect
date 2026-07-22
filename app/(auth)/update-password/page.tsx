@@ -22,7 +22,7 @@ export default function UpdatePasswordPage() {
     }
 
     try {
-      await user?.updatePassword({ password });
+      await user?.updatePassword({ newPassword: password } as any);
       router.push("/login");
     } catch (err: any) {
       setError(err?.errors?.[0]?.message ?? "Failed to update password.");
