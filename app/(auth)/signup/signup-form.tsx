@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { FormEvent, useMemo, useState } from "react";
+import { PageTransition } from "@/components/ui/PageTransition";
 import { createClient } from "@/lib/supabase/client";
 
 const industries = [
@@ -42,7 +43,7 @@ function passwordStrength(password: string) {
   if (password.length >= 8 && /[A-Z]/.test(password) && /[0-9]/.test(password)) score = 3;
   if (score === 3 && /[^A-Za-z0-9]/.test(password)) score = 4;
   const labels = ["", "Weak", "Fair", "Good", "Strong"];
-  const colors = ["#ef4444", "#ef4444", "#f97316", "#C9A84C", "#5ECDB5"];
+  const colors = ["#ef4444", "#ef4444", "#f97316", "var(--color-accent)", "var(--color-success)"];
   return { score, label: labels[score], color: colors[score] };
 }
 
@@ -109,6 +110,7 @@ export default function SignupForm() {
   }
 
   return (
+    <PageTransition>
     <div className="auth-stack">
       <form className="auth-card auth-card--wide" onSubmit={submit}>
         <div style={{ textAlign: "center", marginBottom: 8 }}>
@@ -116,7 +118,7 @@ export default function SignupForm() {
             lang="ar"
             dir="rtl"
             style={{
-              color: "#C9A84C",
+              color: "var(--color-accent)",
               fontSize: 18,
               fontWeight: 700,
               fontFamily: "serif",
@@ -218,5 +220,6 @@ export default function SignupForm() {
         <p className="auth-switch">Already have an account? <Link href="/login">Sign in</Link></p>
       </form>
     </div>
+    </PageTransition>
   );
 }

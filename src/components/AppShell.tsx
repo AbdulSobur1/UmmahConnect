@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Briefcase, Compass, Home, MessageCircle, Settings,
@@ -33,6 +33,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [showDropdown, setShowDropdown] = useState(false);
   const [dismissedNotif, setDismissedNotif] = useState<string | null>(null);
+  const [dropdownAnimating, setDropdownAnimating] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { data: currentUser } = useQuery({ queryKey: ["me"], queryFn: () => apiGet<User>("/api/users/me") });
   const { data: notifications = [] } = useQuery({
@@ -40,7 +41,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     queryFn: () => apiGet<Notification[]>("/api/notifications"),
     enabled: Boolean(currentUser),
   });
-  const unreadCount = notifications.filter((notification) => !notification.is_read).length;
   const latestNotification = notifications.find((n) => !n.is_read);
 
   useEffect(() => {
@@ -53,12 +53,28 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Animate dropdown
+  const toggleDropdown = useCallback(() => {
+    if (!showDropdown) {
+      setDropdownAnimating(true);
+      setShowDropdown(true);
+    } else {
+      setDropdownAnimating(false);
+      setTimeout(() => setShowDropdown(false), 150);
+    }
+  }, [showDropdown]);
+
   return (
     <div className="app-shell">
+      {/* Bismillah header */}
+      <div className="app-header-bismillah">
+        <span lang="ar" dir="rtl">بسم الله الرحمن الرحيم</span>
+      </div>
+
       {/* Desktop top nav */}
-      <nav className="app-nav app-nav--desktop">
+      <nav className="app-nav app-nav--desktop" style={{ position: "sticky", top: 0, zIndex: 20 }}>
         <div className="container app-nav-inner">
-          <Link href="/feed" className="brand">
+          <Link href="/feed" className="brand transition-fast" style={{ opacity: 1 }}>
             Ummah <span>Connect</span>
           </Link>
           <div className="nav-links" aria-label="Main navigation">
@@ -66,7 +82,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               const Icon = item.icon;
               const active = pathname === item.href;
               return (
-                <Link key={item.href} href={item.href} className={`nav-link ${active ? "nav-link-active" : ""}`}>
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`nav-link ${active ? "nav-link-active" : ""} transition-fast`}
+                >
                   <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
                     <Icon size={16} />
                     {item.label}
@@ -83,14 +103,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           >
             <Link
               href="/settings"
+              className="transition-fast hover-lift"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 8,
                 borderRadius: 999,
                 padding: "8px 12px",
-                color: "#5ECDB5",
-                background: "rgba(94,205,181,0.1)",
+                color: "var(--color-success)",
+                background: "var(--color-success-light)",
                 border: "1px solid rgba(94,205,181,0.16)",
                 fontSize: 14,
                 fontWeight: 600,
@@ -100,6 +121,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               {currentUser?.plan === "free" ? "Free" : currentUser?.plan ?? "..."}
             </Link>
             <button
+              className="transition-fast"
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -110,30 +132,39 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 background: "transparent",
                 color: "rgba(255,255,255,0.45)",
                 cursor: "pointer",
+                transition: "background 0.15s ease",
               }}
-              onClick={() => setShowDropdown((v) => !v)}
+              onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.06)"}
+              onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+              onClick={toggleDropdown}
               aria-label="User menu"
             >
               <Avatar name={currentUser?.full_name ?? "U"} size={32} />
-              <ChevronDown size={14} />
+              <ChevronDown
+                size={14}
+                style={{ transition: "transform 0.2s ease", transform: showDropdown ? "rotate(180deg)" : "rotate(0deg)" }}
+              />
             </button>
             {showDropdown ? (
               <div
+                className={dropdownAnimating ? "animate-scale-in" : ""}
                 style={{
                   position: "absolute",
                   top: "calc(100% + 8px)",
                   right: 0,
-                  background: "#132420",
+                  background: "var(--color-bg-secondary)",
                   border: "1px solid rgba(255,255,255,0.08)",
                   borderRadius: 12,
                   padding: 6,
-                  minWidth: 180,
+                  minWidth: 200,
                   zIndex: 30,
                   boxShadow: "0 12px 40px rgba(0,0,0,0.4)",
+                  transformOrigin: "top right",
                 }}
               >
                 <Link
                   href="/settings"
+                  className="transition-fast"
                   style={{
                     display: "flex",
                     alignItems: "center",
@@ -148,12 +179,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     border: 0,
                     background: "transparent",
                     cursor: "pointer",
+                    transition: "background 0.15s ease",
                   }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.06)"}
+                  onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
                   onClick={() => setShowDropdown(false)}
                 >
                   <Settings size={16} /> Settings
                 </Link>
                 <button
+                  className="transition-fast"
                   style={{
                     display: "flex",
                     alignItems: "center",
@@ -168,7 +203,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     border: 0,
                     background: "transparent",
                     cursor: "pointer",
+                    transition: "background 0.15s ease",
                   }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.06)"}
+                  onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
                   onClick={() => { window.location.href = "/api/auth/logout"; }}
                 >
                   <LogOut size={16} /> Sign out
@@ -182,6 +220,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* Notification banner at top of page */}
       {latestNotification && dismissedNotif !== latestNotification.id ? (
         <div
+          className="animate-notification-slide"
           style={{
             display: "flex",
             alignItems: "center",
@@ -194,9 +233,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             color: "rgba(255,255,255,0.92)",
           }}
         >
-          <Bell size={16} style={{ flex: "0 0 auto", color: "#C9A84C" }} />
+          <Bell size={16} style={{ flex: "0 0 auto", color: "var(--color-accent)" }} />
           <span style={{ flex: 1, lineHeight: 1.4 }}>{latestNotification.content}</span>
           <button
+            className="transition-fast"
             style={{
               flex: "0 0 auto",
               background: "transparent",
@@ -205,7 +245,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               cursor: "pointer",
               padding: 4,
               borderRadius: 6,
+              transition: "all 0.15s ease",
             }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.1)"; e.currentTarget.style.color = "#fff"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.5)"; }}
             onClick={() => setDismissedNotif(latestNotification.id)}
             aria-label="Dismiss"
           >
@@ -215,7 +258,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       ) : null}
 
       {/* Main content */}
-      <main className="container app-main">{children}</main>
+      <main className="container app-main animate-fade-in">{children}</main>
 
       {/* Mobile bottom tab bar — exactly 5 tabs */}
       <nav className="bottom-nav">
@@ -226,6 +269,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Link
               key={tab.href}
               href={tab.href}
+              className="transition-fast"
               style={{
                 display: "flex",
                 flexDirection: "column",
@@ -233,7 +277,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 gap: 1,
                 padding: "6px 8px 4px",
                 borderRadius: 8,
-                color: isActive ? "#1A6B5C" : "rgba(255,255,255,0.5)",
+                color: isActive ? "var(--color-primary)" : "rgba(255,255,255,0.5)",
                 fontSize: 11,
                 fontWeight: 600,
                 fontFamily: "'DM Sans', sans-serif",
@@ -244,10 +288,29 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 background: "transparent",
                 cursor: "pointer",
                 position: "relative",
+                transition: "color 0.15s ease",
               }}
             >
-              <Icon size={22} />
+              <Icon
+                size={22}
+                style={{ transition: "transform 0.15s ease" }}
+                className={isActive ? "" : ""}
+              />
               <span>{tab.label}</span>
+              {isActive ? (
+                <span
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    width: 20,
+                    height: 3,
+                    borderRadius: "0 0 3px 3px",
+                    background: "var(--color-primary)",
+                  }}
+                />
+              ) : null}
             </Link>
           );
         })}

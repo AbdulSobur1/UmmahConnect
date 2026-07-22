@@ -122,7 +122,7 @@ export function Profile() {
             marginBottom: 12,
             fontSize: 14,
             fontWeight: 600,
-            color: "#5ECDB5",
+            color: "var(--color-success)",
           }}
         >
           <CheckCircle2 size={18} /> Profile updated successfully
@@ -137,7 +137,7 @@ export function Profile() {
           borderRadius: "16px 16px 0 0",
           background: displayBanner
             ? `url(${displayBanner}) center/cover no-repeat`
-            : "linear-gradient(120deg, #1A6B5C, #C9A84C)",
+            : "linear-gradient(120deg, var(--color-primary), var(--color-accent))",
           position: "relative",
           overflow: "hidden",
         }}
@@ -177,7 +177,7 @@ export function Profile() {
             style={{
               borderRadius: "999px",
               display: "inline-flex",
-              border: "3px solid #0D1B1E",
+              border: "3px solid var(--color-bg-dark)",
               boxShadow: "0 0 0 3px rgba(201,168,76,0.2)",
             }}
           >
@@ -307,7 +307,7 @@ export function Profile() {
           style={{
             margin: "14px 20px",
             padding: "10px 14px",
-            background: "#1A6B5C",
+            background: "var(--color-primary)",
             borderRadius: 16,
             display: "flex",
             alignItems: "center",
@@ -369,7 +369,7 @@ export function Profile() {
         </div>
 
         <InfoCard
-          icon={<MessageCircle size={16} color="#1A6B5C" />}
+          icon={<MessageCircle size={16} color="var(--color-primary)" />}
           title="Weekly messaging counter"
           description="Free users can send and receive messages from anyone, including Pro users. Sending is limited to 10 messages per week."
           extra={
@@ -383,7 +383,7 @@ export function Profile() {
         />
 
         <InfoCard
-          icon={<Mail size={16} color="#1A6B5C" />}
+          icon={<Mail size={16} color="var(--color-primary)" />}
           title="Opportunities"
           description={currentUser.open_to_opportunities ? "Open to relevant roles and collaborations." : "Not currently open to opportunities."}
           extra={

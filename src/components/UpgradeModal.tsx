@@ -30,7 +30,7 @@ export function UpgradeModal({ onClose }: UpgradeModalProps) {
         </p>
         <div className="card" style={{ padding: 16, boxShadow: "none" }}>
           <div className="row">
-            <Crown color="#C9A84C" />
+            <Crown color="var(--color-accent)" />
             <div>
               <strong style={{ fontSize: 16 }}>Professional plan</strong>
               <p className="muted" style={{ margin: "4px 0 0", fontSize: 13, lineHeight: 1.5 }}>Built for Muslim professionals actively growing their network and visibility.</p>

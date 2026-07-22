@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { FormEvent, useState } from "react";
+import { PageTransition } from "@/components/ui/PageTransition";
 import { createClient } from "@/lib/supabase/client";
 
 type LoginResponse = {
@@ -57,6 +58,7 @@ export default function LoginForm() {
   }
 
   return (
+    <PageTransition>
     <div className="auth-stack">
       <form className="auth-card" onSubmit={submit}>
         <div style={{ textAlign: "center", marginBottom: 8 }}>
@@ -64,7 +66,7 @@ export default function LoginForm() {
             lang="ar"
             dir="rtl"
             style={{
-              color: "#C9A84C",
+              color: "var(--color-accent)",
               fontSize: 18,
               fontWeight: 700,
               fontFamily: "serif",
@@ -133,5 +135,6 @@ export default function LoginForm() {
         </p>
       </form>
     </div>
+    </PageTransition>
   );
 }
